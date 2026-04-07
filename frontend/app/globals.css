@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-apricot-50: #fdf2e8;
+  --color-apricot-100: #fbe6d0;
+  --color-apricot-200: #f6cca2;
+  --color-apricot-300: #f2b373;
+  --color-apricot-400: #ee9944;
+  --color-apricot-500: #e98016;
+  --color-apricot-600: #bb6611;
+  --color-apricot-700: #8c4c0d;
+  --color-apricot-800: #5d3309;
+  --color-apricot-900: #2f1a04;
+  --color-apricot-950: #211203;
+
+  --color-cotton-50: #ffe5e7;
+  --color-cotton-100: #ffcccf;
+  --color-cotton-200: #ff99a0;
+  --color-cotton-300: #ff6670;
+  --color-cotton-400: #ff3341;
+  --color-cotton-500: #ff0011;
+  --color-cotton-600: #cc000e;
+  --color-cotton-700: #99000a;
+  --color-cotton-800: #660007;
+  --color-cotton-900: #330003;
+  --color-cotton-950: #240002;
+
+  --color-blush-50: #faeaee;
+  --color-blush-100: #f5d6dd;
+  --color-blush-200: #ecacba;
+  --color-blush-300: #e28398;
+  --color-blush-400: #d85a75;
+  --color-blush-500: #cf3053;
+  --color-blush-600: #a52742;
+  --color-blush-700: #7c1d32;
+  --color-blush-800: #531321;
+  --color-blush-900: #290a11;
+  --color-blush-950: #1d070c;
+
+  --color-berry-50: #f8ecf1;
+  --color-berry-100: #f2d9e2;
+  --color-berry-200: #e5b3c5;
+  --color-berry-300: #d88da9;
+  --color-berry-400: #cb678c;
+  --color-berry-500: #be416f;
+  --color-berry-600: #983459;
+  --color-berry-700: #722743;
+  --color-berry-800: #4c1a2c;
+  --color-berry-900: #260d16;
+  --color-berry-950: #1b0910;
+
+  --color-bordeaux-50: #fce8f0;
+  --color-bordeaux-100: #f9d2e1;
+  --color-bordeaux-200: #f3a5c3;
+  --color-bordeaux-300: #ed78a5;
+  --color-bordeaux-400: #e84a87;
+  --color-bordeaux-500: #e21d69;
+  --color-bordeaux-600: #b51754;
+  --color-bordeaux-700: #87123f;
+  --color-bordeaux-800: #5a0c2a;
+  --color-bordeaux-900: #2d0615;
+  --color-bordeaux-950: #20040f;
+}
+
+:root {
+  --background: #fffbfa;
+  --foreground: #1d070c;
+}
+
+/* Explicitly remove dark mode targeting by enforcing light background properties everywhere */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  color-scheme: light;
+}
