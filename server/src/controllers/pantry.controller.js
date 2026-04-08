@@ -25,7 +25,7 @@ exports.addItem = async (req, res) => {
       name,
       quantity: Number(quantity),
       unit,
-      expiry,
+      expiry: expiry || null,
       imageUrl: imageUrl || null,
       createdAt: new Date().toISOString()
     };
@@ -34,6 +34,43 @@ exports.addItem = async (req, res) => {
     res.status(201).json({ id: docRef.id, ...newItem });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.bulkAddItems = async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const { items } = req.body;
+
+    if (!items || !Array.isArray(items)) {
+      return res.status(400).json({ error: "Invalid payload, expected array of items" });
+    }
+
+    const batch = db.batch();
+    const collectionRef = db.collection("pantry").doc(userId).collection("items");
+    
+    const addedItems = [];
+
+    items.forEach(item => {
+      const docRef = collectionRef.doc(); // Auto-generate ID
+      const newItem = {
+        name: item.name,
+        quantity: Number(item.quantity) || 1,
+        unit: item.unit || 'unit',
+        expiry: item.expiry || null,
+        imageUrl: item.imageUrl || null,
+        createdAt: new Date().toISOString(),
+        source: "scan"
+      };
+      batch.set(docRef, newItem);
+      addedItems.push({ id: docRef.id, ...newItem });
+    });
+
+    await batch.commit();
+    res.status(201).json({ message: "Bulk insert successful", items: addedItems });
+  } catch(error) {
+    console.error("Bulk add error:", error);
+    res.status(500).json({ error: "Failed to perform bulk insertion" });
   }
 };
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { COMMON_FOOD_IMAGES } from "@/lib/food-dictionary";
 import Link from "next/link";
 import { Share2, MapPin, ArrowLeft } from "lucide-react";
 
@@ -37,7 +38,7 @@ export default function Community() {
          {[1, 2, 3].map((item, i) => (
            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} key={i}>
              <Card className="hover:-translate-y-1 transition-transform">
-                <div className="h-40 w-full rounded-xl bg-gray-200 mb-4 bg-cover bg-center" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80)" }} />
+                <div className="h-40 w-full rounded-xl bg-gray-200 mb-4 bg-cover bg-center" style={{ backgroundImage: `url(${COMMON_FOOD_IMAGES.default})` }} />
                 <h3 className="text-xl font-bold text-bordeaux-800">Organic Apples</h3>
                 <p className="text-bordeaux-500 font-medium mb-3">3 lbs remaining • Pick up only</p>
                 <div className="flex items-center text-sm text-apricot-700 mb-6 bg-apricot-50 p-2 rounded-lg">
