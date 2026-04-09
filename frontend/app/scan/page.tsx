@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
-import { Camera, Upload, ArrowLeft, Loader2, CheckCircle2, Edit2, Trash, Plus } from "lucide-react";
+import { Camera, Upload, ArrowLeft, Loader2, CheckCircle2, Edit2, Trash, Plus, RotateCw, X, Zap, ZapOff } from "lucide-react";
 
 export default function Scan() {
   const { user, loading } = useAuth();
@@ -16,33 +16,95 @@ export default function Scan() {
   const [processing, setProcessing] = useState(false);
   const [scannedItems, setScannedItems] = useState<any[]>([]);
   const [step, setStep] = useState<"capture" | "processing" | "review" | "success">("capture");
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
+  const [torch, setTorch] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
+
+    // Hardware cleanup: ensure camera stops if user navigates away
+    return () => {
+      stopCamera();
+    };
   }, [user, loading, router]);
 
-  const startCamera = async () => {
+  useEffect(() => {
+    if (cameraActive && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [cameraActive, stream]);
+
+   const startCamera = async (mode: "user" | "environment" = facingMode) => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setCameraActive(true);
+      // Hardware cleanup: Stop existing tracks first if any
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
+      const newStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: mode,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        } 
+      });
+      
+      setStream(newStream);
+      setCameraActive(true);
+      setFacingMode(mode);
+
+      // Try to auto-enable torch for better clarity if in environment mode
+      const track = newStream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities() as any;
+      if (mode === "environment" && capabilities?.torch) {
+        try {
+          await track.applyConstraints({
+            advanced: [{ torch: true }]
+          } as any);
+          setTorch(true);
+        } catch (e) {
+          console.warn("Torch failed to start automatically");
+        }
+      } else {
+        setTorch(false);
       }
     } catch (err) {
-      // Silently catch the error rather than throwing console.error to keep logs clean
-      alert("Camera access unavailable. Please use the upload feature.");
+      alert("Camera access unavailable. Please check permissions or use the upload feature.");
+      setCameraActive(false);
     }
   };
 
+  const toggleCamera = () => {
+    const nextMode = facingMode === "user" ? "environment" : "user";
+    startCamera(nextMode);
+  };
+
   const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
+    if (stream) {
       stream.getTracks().forEach(track => track.stop());
-      setCameraActive(false);
+      setStream(null);
+    }
+    setCameraActive(false);
+    setTorch(false);
+  };
+
+  const toggleTorch = async () => {
+    if (!stream) return;
+    const track = stream.getVideoTracks()[0];
+    const newTorchState = !torch;
+    
+    try {
+      await track.applyConstraints({
+        advanced: [{ torch: newTorchState }]
+      } as any);
+      setTorch(newTorchState);
+    } catch (err) {
+      alert("Flash/Torch not supported on this device.");
     }
   };
 
@@ -165,26 +227,73 @@ export default function Scan() {
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" capture="environment" onChange={handleFileUpload} />
             <canvas ref={canvasRef} className="hidden" />
 
-            {!cameraActive ? (
+             {!cameraActive ? (
               <>
-                <Camera size={64} className="text-apricot-400 mb-6" />
-                <Button variant="primary" onClick={startCamera} className="mb-4 w-full shadow-apricot-400">Open Camera</Button>
-                <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full"><Upload className="mr-2" size={18} /> Upload Image</Button>
+                <div className="w-20 h-20 bg-apricot-50 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Camera size={40} className="text-apricot-400" />
+                </div>
+                <h3 className="text-xl font-bold text-bordeaux-800 mb-2">Ready to Scan?</h3>
+                <p className="text-sm text-gray-500 mb-8 px-4">Point your camera at a receipt or individual food items</p>
+                <div className="flex flex-col gap-3 w-full">
+                  <Button variant="primary" onClick={() => startCamera("environment")} className="w-full shadow-lg shadow-apricot-400/30 py-6 text-lg">
+                    <Camera className="mr-2" size={20} /> Open Scanner
+                  </Button>
+                  <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full py-6 border-gray-200">
+                    <Upload className="mr-2" size={18} /> Upload from Gallery
+                  </Button>
+                </div>
               </>
             ) : (
-              <div className="absolute inset-0 w-full h-full bg-black flex flex-col">
-                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover opacity-80" />
+              <div className="absolute inset-0 w-full h-full bg-black flex flex-col items-center justify-center">
+                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
                 
+                {/* Viewfinder corners */}
+                <div className="absolute inset-0 border-[40px] border-black/40 pointer-events-none">
+                  <div className="absolute inset-0 border-2 border-white/20 rounded-lg"></div>
+                </div>
+
                 {/* Scanner Overlay Animation */}
                 <motion.div 
-                   animate={{ top: ["0%", "100%", "0%"] }}
-                   transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                   className="absolute left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#ff6670] to-transparent shadow-[0_0_15px_#ff6670]"
+                   animate={{ top: ["20%", "80%", "20%"] }}
+                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                   className="absolute left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-transparent via-[#ff6670] to-transparent shadow-[0_0_15px_#ff6670] z-20"
                 />
 
-                <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4 px-8">
-                   <Button variant="outline" className="bg-white/20 text-white border-white/40 backdrop-blur" onClick={stopCamera}>Cancel</Button>
-                   <Button className="bg-[#ff6670] text-white hover:bg-white hover:text-[#ff6670] border-0" onClick={captureFrame}>Snap Scan</Button>
+                {/* Controls */}
+                <div className="absolute top-6 right-6 flex gap-3 z-30">
+                  <button 
+                    onClick={toggleTorch}
+                    className={`p-3 rounded-full backdrop-blur-md transition-colors ${torch ? 'bg-apricot-400 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                  >
+                    {torch ? <Zap size={24} /> : <ZapOff size={24} />}
+                  </button>
+                  <button onClick={stopCamera} className="p-3 bg-black/50 text-white rounded-full backdrop-blur-md hover:bg-black/70 transition-colors">
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className="absolute bottom-10 left-0 right-0 flex flex-col items-center gap-6 z-30 px-6">
+                  <div className="flex items-center gap-6">
+                    <button 
+                      onClick={toggleCamera}
+                      className="p-4 bg-white/10 text-white rounded-full backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all active:scale-95"
+                    >
+                      <RotateCw size={24} />
+                    </button>
+
+                    <button 
+                      onClick={captureFrame}
+                      className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl border-4 border-[#ff6670]/30 active:scale-90 transition-transform"
+                    >
+                      <div className="w-14 h-14 bg-gradient-to-tr from-apricot-400 to-[#ff6670] rounded-full"></div>
+                    </button>
+
+                    <div className="w-14"></div> {/* Spacer for symmetry */}
+                  </div>
+                  
+                  <p className="text-white/80 text-xs font-medium tracking-widest uppercase bg-black/30 px-4 py-1.5 rounded-full backdrop-blur-sm">
+                    Scanning in {facingMode === "user" ? "Selfie" : "Standard"} Mode
+                  </p>
                 </div>
               </div>
             )}

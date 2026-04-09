@@ -1,4 +1,5 @@
 const { db } = require("../config/firebase");
+const unsplashService = require("../services/unsplash.service");
 
 exports.getItems = async (req, res) => {
   try {
@@ -21,12 +22,18 @@ exports.addItem = async (req, res) => {
     const userId = req.user.uid;
     const { name, quantity, unit, expiry, imageUrl } = req.body;
     
+    // Dynamically fetch image if not provided
+    let finalImageUrl = imageUrl;
+    if (!finalImageUrl) {
+      finalImageUrl = await unsplashService.getFoodImage(name);
+    }
+
     const newItem = {
       name,
       quantity: Number(quantity),
       unit,
       expiry: expiry || null,
-      imageUrl: imageUrl || null,
+      imageUrl: finalImageUrl || null,
       createdAt: new Date().toISOString()
     };
     
@@ -51,20 +58,26 @@ exports.bulkAddItems = async (req, res) => {
     
     const addedItems = [];
 
-    items.forEach(item => {
+    for (const item of items) {
       const docRef = collectionRef.doc(); // Auto-generate ID
+      
+      let finalImageUrl = item.imageUrl;
+      if (!finalImageUrl) {
+        finalImageUrl = await unsplashService.getFoodImage(item.name);
+      }
+
       const newItem = {
         name: item.name,
         quantity: Number(item.quantity) || 1,
         unit: item.unit || 'unit',
         expiry: item.expiry || null,
-        imageUrl: item.imageUrl || null,
+        imageUrl: finalImageUrl || null,
         createdAt: new Date().toISOString(),
         source: "scan"
       };
       batch.set(docRef, newItem);
       addedItems.push({ id: docRef.id, ...newItem });
-    });
+    }
 
     await batch.commit();
     res.status(201).json({ message: "Bulk insert successful", items: addedItems });

@@ -9,7 +9,6 @@ import { Plus, Minus, Trash, ArrowLeft, Loader2, ScanLine } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "@/lib/firebase/config";
 import { collection, onSnapshot, query, orderBy, updateDoc, deleteDoc, doc } from "firebase/firestore";
-import { getFoodImage } from "@/lib/food-dictionary";
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -22,27 +21,19 @@ export default function Dashboard() {
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
 
-  useEffect(() => {
+   useEffect(() => {
     if (!user) return;
     
     const q = query(collection(db, "pantry", user.uid, "items"), orderBy("createdAt", "desc"));
     
-    const unsubscribe = onSnapshot(q, async (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const rawItems = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      // Dynamically attach specific images using the intelligent proxy dictionary
-      const hydratedItems = await Promise.all(rawItems.map(async (item: any) => {
-         const image = item.imageUrl ? item.imageUrl : await getFoodImage(item.name);
-         return { ...item, displayImage: image };
-      }));
-
-      setItems(hydratedItems);
+      setItems(rawItems);
       setDataLoaded(true);
     });
 
     return () => unsubscribe();
   }, [user]);
-
   const updateQuantity = async (id: string, currentQty: number, adjustment: number) => {
     if (!user) return;
     const newQty = Math.max(0, currentQty + adjustment);
@@ -120,7 +111,11 @@ export default function Dashboard() {
                 <Card className="hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden p-0 border-0 shadow-lg bg-white relative group">
                   <div className="h-40 w-full bg-cover bg-center overflow-hidden relative">
                     <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                    <img src={item.displayImage} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 delay-100" />
+                     <img 
+                      src={item.imageUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80"} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 delay-100" 
+                    />
                     
                     {item.expiry && (
                        <span className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full shadow-lg ${calculateExpiryColor(item.expiry)}`}>
