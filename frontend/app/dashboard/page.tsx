@@ -29,22 +29,53 @@ export default function Dashboard() {
 
 
 
-  useEffect(() => {
-    if (!loading && !user) router.push("/login");
-  }, [user, loading, router]);
+  const normalize = (str: string) => {
+    if (!str) return "";
+    return str.toLowerCase().trim().replace(/s$/, "");
+  };
 
-   useEffect(() => {
+  useEffect(() => {
     if (!user) return;
     
     const q = query(collection(db, "pantry", user.uid, "items"), orderBy("createdAt", "desc"));
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const rawItems = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setItems(rawItems);
+    return onSnapshot(q, (snapshot) => {
+      const raw = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+      
+      // CLIENT-SIDE SMART MERGE
+      const merged: any[] = [];
+      const groups: Record<string, any> = {};
+
+      raw.forEach((item) => {
+        const key = `${normalize(item.name)}|${normalize(item.unit)}`;
+        if (!groups[key]) {
+          groups[key] = { ...item };
+          if (!groups[key].batches) {
+            groups[key].batches = [{ 
+              id: "legacy", 
+              quantity: item.quantity, 
+              expiry: item.expiry, 
+              addedAt: item.createdAt || new Date().toISOString() 
+            }];
+          }
+          merged.push(groups[key]);
+        } else {
+          const target = groups[key];
+          const batches = item.batches || [{ 
+            id: `dup-${item.id}`, 
+            quantity: item.quantity, 
+            expiry: item.expiry, 
+            addedAt: item.createdAt || new Date().toISOString() 
+          }];
+          target.batches = [...target.batches, ...batches];
+          // Recalculate total quantity
+          target.quantity = target.batches.reduce((acc: number, b: any) => acc + b.quantity, 0);
+        }
+      });
+
+      setItems(merged);
       setDataLoaded(true);
     });
-
-    return () => unsubscribe();
   }, [user]);
   const handleAction = async (id: string, action: "use" | "half") => {
     if (!user) return;
@@ -200,37 +231,49 @@ export default function Dashboard() {
                     </div>
                     <p className="text-bordeaux-500 font-medium text-sm mb-4">{item.quantity} {item.unit}</p>
                     
-                    <div className="flex flex-col gap-2">
-                       <AnimatePresence>
+                    <div className="flex flex-col gap-2 relative h-[100px] justify-end">
+                       <AnimatePresence mode="wait">
                         {adjustingId === item.id ? (
                           <motion.div 
-                            initial={{ height: 0, opacity: 0 }} 
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="bg-gray-50 p-2 rounded-xl border border-gray-200 flex gap-2 mb-1"
+                            key="deduct-mode"
+                            initial={{ scale: 0.9, opacity: 0 }} 
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-gray-50 p-2 rounded-2xl border border-gray-200 flex flex-col gap-2 absolute inset-0 z-10"
                           >
-                            <input 
-                              autoFocus
-                              type="number" 
-                              step="0.01"
-                              placeholder="Deduct..."
-                              value={deductValue}
-                              onChange={(e) => setDeductValue(e.target.value)}
-                              className="flex-1 bg-white border-0 text-sm px-2 h-8 rounded-lg outline-none focus:ring-1 ring-apricot-400"
-                            />
-                            <Button onClick={() => handleAdjust(item.id)} className="h-8 w-8 p-0 bg-green-500 hover:bg-green-600 text-white"><Check size={14} /></Button>
-                            <Button onClick={() => setAdjustingId(null)} className="h-8 w-8 p-0 bg-gray-200 text-gray-400 hover:bg-gray-300"><X size={14} /></Button>
+                             <div className="flex gap-2 h-full">
+                                <input 
+                                  autoFocus
+                                  type="number" 
+                                  step="0.01"
+                                  placeholder="Amount..."
+                                  value={deductValue}
+                                  onChange={(e) => setDeductValue(e.target.value)}
+                                  className="flex-1 bg-white border-2 border-gray-100 text-sm px-3 rounded-xl outline-none focus:border-apricot-400 transition-colors font-bold text-bordeaux-800"
+                                />
+                                <div className="flex flex-col gap-1">
+                                  <Button onClick={() => handleAdjust(item.id)} className="h-full px-4 bg-green-500 hover:bg-green-600 text-white rounded-xl"><Check size={18} /></Button>
+                                  <Button onClick={() => setAdjustingId(null)} className="h-full px-4 bg-gray-200 text-gray-500 hover:bg-gray-300 rounded-xl"><X size={18} /></Button>
+                                </div>
+                             </div>
                           </motion.div>
-                        ) : null}
+                        ) : (
+                          <motion.div 
+                            key="standard-mode"
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex gap-2 w-full h-12"
+                          >
+                            <Button variant="outline" onClick={() => handleAction(item.id, "use")} className="flex-1 px-0 py-2 h-12 border-apricot-300 text-apricot-700 hover:bg-apricot-50 shadow-sm font-bold active:scale-95 transition-all"><Minus size={16} className="mr-1" /> Use</Button>
+                            <Button variant="outline" onClick={() => handleAction(item.id, "half")} className="flex-1 px-0 py-2 h-12 border-apricot-300 text-apricot-700 hover:bg-apricot-50 shadow-sm font-bold active:scale-95 transition-all">Half</Button>
+                            <Button variant="outline" onClick={() => setAdjustingId(item.id)} className="flex-none w-12 h-12 p-0 border-gray-200 text-gray-500 hover:bg-gray-50 flex items-center justify-center rounded-xl active:scale-95 transition-all"><Edit2 size={18} /></Button>
+                            <Button onClick={() => deleteItem(item.id)} variant="outline" className="flex-none w-12 h-12 p-0 border-red-100 text-red-500 hover:bg-red-50 hover:text-red-600 flex items-center justify-center rounded-xl active:scale-95 transition-all"><Trash size={18} /></Button>
+                          </motion.div>
+                        )}
                       </AnimatePresence>
-
-                      <div className="flex gap-2 w-full">
-                        <Button variant="outline" onClick={() => handleAction(item.id, "use")} className="flex-1 px-0 py-2 h-10 border-apricot-300 text-apricot-700 hover:bg-apricot-50 shadow-sm"><Minus size={16} className="mr-1" /> Use</Button>
-                        <Button variant="outline" onClick={() => handleAction(item.id, "half")} className="flex-1 px-0 py-2 h-10 border-apricot-300 text-apricot-700 hover:bg-apricot-50 shadow-sm">Half</Button>
-                        <Button variant="outline" onClick={() => setAdjustingId(item.id)} className="flex-none w-10 h-10 p-0 border-gray-200 text-gray-500 hover:bg-gray-50 flex items-center justify-center"><Edit2 size={16} /></Button>
-                        <Button onClick={() => deleteItem(item.id)} variant="outline" className="flex-none w-10 h-10 p-0 border-red-100 text-red-500 hover:bg-red-50 hover:text-red-600 flex items-center justify-center"><Trash size={16} /></Button>
-                      </div>
                     </div>
+
                   </div>
 
                 </Card>

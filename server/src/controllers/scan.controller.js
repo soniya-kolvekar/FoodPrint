@@ -110,9 +110,10 @@ exports.processScan = async (req, res) => {
       console.log(`[DEBUG] Original Dimensions: ${metadata.width}x${metadata.height}`);
       
       // ALWAYS optimize and convert to JPEG. Gemini does NOT support AVIF or very high-res photos.
-      console.log(`[DEBUG] Converting to JPEG/Optimizing...`);
+      // We use a max width of 1000px for stability on Early Access models (prevents truncation).
+      console.log(`[DEBUG] Converting to JPEG/Optimizing (Width: 1000px)...`);
       optimizedBuffer = await image
-        .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
+        .resize({ width: 1000, height: 1000, fit: 'inside', withoutEnlargement: true })
         .jpeg({ quality: 80 })
         .toBuffer();
       finalMimeType = "image/jpeg";
@@ -143,14 +144,14 @@ exports.processScan = async (req, res) => {
 
     let rawOutput = null;
     let success = false;
-    // Using the latest 2.5 and 2.0 series models as per the user's AI Studio console
+    
+    // Using exactly the models available in the user's AI Studio project
     const modelsToTry = [
       "gemini-2.5-flash", 
-      "gemini-2.5-flash-lite",
-      "gemini-2.5-pro"
+      "gemini-2.5-flash-lite"
     ];
 
-    // Unified Safety Settings to prevent receipts (which have lots of numbers/codes) from being blocked
+    // Unified Safety Settings 
     const safetySettings = [
       { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
       { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -158,26 +159,22 @@ exports.processScan = async (req, res) => {
       { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
     ];
 
-    // Failover Loop: Cycles through API keys AND models if rate-limits or errors occur
-    for (let i = 0; i < keys.length; i++) {
-      for (let j = 0; j < modelsToTry.length; j++) {
+    // Failover Loop
+    for (let j = 0; j < modelsToTry.length; j++) {
+      for (let i = 0; i < keys.length; i++) {
         try {
           const currentModel = modelsToTry[j];
-          console.log(`[SCAN] Trying Key ${i + 1} with ${currentModel}...`);
+          console.log(`[SCAN] Trying Model ${currentModel} with Key ${i + 1}...`);
 
           const genAI = new GoogleGenerativeAI(keys[i]);
           
-          // Use JSON mode for 2.0 models to ensure structured output
           const generationConfig = {
             temperature: 0.1,
             topK: 32,
             topP: 1,
-            maxOutputTokens: 4096, // Increased to prevent truncation of long receipts
+            maxOutputTokens: 2048,
+            responseMimeType: "application/json"
           };
-
-          if (currentModel.includes("2.0") || currentModel.includes("2-flash")) {
-             generationConfig.responseMimeType = "application/json";
-          }
 
           const model = genAI.getGenerativeModel({ 
             model: currentModel,
@@ -188,66 +185,65 @@ exports.processScan = async (req, res) => {
           const result = await model.generateContent([SYSTEM_PROMPT, ...imageParts]);
           const response = await result.response;
           
-          // Check for block reason if response was not successful 
-          if (response.promptFeedback?.blockReason) {
-             console.warn(`[BLOCKED] Key ${i+1} | Reason: ${response.promptFeedback.blockReason}`);
-             continue;
-          }
-
           rawOutput = response.text();
-
-          // HEURISTIC: Check if JSON seems complete (ends with ])
-          // Truncation happens sometimes on early access models
-          if (rawOutput && !rawOutput.trim().endsWith("]")) {
-             console.warn(`[TRUNCATED] Key ${i+1} | Output stopped mid-sentence. Retrying with next model...`);
-             continue;
-          }
 
           if (rawOutput) {
             success = true;
-            console.log(`[SUCCESS] Key ${i + 1} parsed with ${currentModel}`);
+            console.log(`[SUCCESS] Output received from ${currentModel}`);
             break;
           }
         } catch (err) {
-          console.error(`[DEBUG] Attempt Failed | Key ${i + 1} | Model: ${modelsToTry[j]}`);
-          if (err.message && (err.message.includes("429") || err.message.includes("503"))) {
-             console.log(">>> Rate limited or High demand. Waiting 1s before next key...");
-             await new Promise(r => setTimeout(r, 1000));
-          }
-          if (err.response) {
-            console.error(">>> Status:", err.response.status);
-            console.dir(err.response.data, { depth: null });
-          } else {
-            console.error(">>> Error:", err.message || err);
-          }
+          console.error(`[DEBUG] Fail | Key ${i + 1} | Model: ${modelsToTry[j]} | Error: ${err.message?.substring(0, 100)}`);
+          continue; 
         }
       }
-      if (success) break;
+      if (success) break; 
     }
 
     if (!success || !rawOutput) {
       console.error("[CRITICAL] All models and keys failed to process this receipt.");
-      return res.status(502).json({ error: "All OCR/Vision API fallback keys failed. Please try again later." });
+      return res.status(502).json({ error: "All OCR/Vision API fallback keys failed. Your keys likely only support 2.0 models." });
     }
 
-    console.log("[DEBUG] Raw AI Output Received:", rawOutput.substring(0, 200) + "...");
+    console.log("[DEBUG] Raw AI Output Received (Length):", rawOutput.length);
     
-    // Scrub Markdown if the AI stubbornly forces it
-    let cleanedJsonString = rawOutput.trim();
-    if (cleanedJsonString.startsWith("```json")) {
-      cleanedJsonString = cleanedJsonString.replace(/^```json/, "").replace(/```$/, "").trim();
-    } else if (cleanedJsonString.startsWith("```")) {
-      cleanedJsonString = cleanedJsonString.replace(/^```/, "").replace(/```$/, "").trim();
-    }
-
+    // --- STRUCTURAL REPAIR ENGINE (Regex Extraction) ---
+    // If the AI cuts off or returns messy text, we extract every valid JSON object {...}
     let extractedItems = [];
     try {
-      extractedItems = JSON.parse(cleanedJsonString);
-      console.log(`[DEBUG] Successfully parsed ${extractedItems.length} items`);
+      // 1. Try standard parse first
+      extractedItems = JSON.parse(rawOutput.trim());
     } catch (e) {
-      console.error("[DEBUG] JSON Parse Failure. Cleaned string:", cleanedJsonString);
-      return res.status(422).json({ error: "AI failed to format JSON accurately", raw: rawOutput });
+      console.warn("[REPAIR] Standard JSON parse failed. Running Regex Extraction...");
+      
+      // 2. Regex to find all matching { ... } patterns
+      // This handles cases where the array didn't close or there is trailing junk
+      const objectRegex = /{[^{}]*}/g;
+      const matches = rawOutput.match(objectRegex);
+      
+      if (matches && matches.length > 0) {
+        for (const m of matches) {
+           try {
+             const parsed = JSON.parse(m);
+             if (parsed.name) extractedItems.push(parsed);
+           } catch (innerE) { /* skip broken chunk */ }
+        }
+      }
     }
+
+    if (extractedItems.length === 0) {
+      console.error("[DEBUG] Extraction Failure. Raw string:", rawOutput);
+      return res.status(422).json({ error: "No valid items could be recovered from AI response", raw: rawOutput });
+    }
+
+    console.log(`[SUCCESS] Recovered ${extractedItems.length} items from scan.`);
+
+    return res.status(200).json({
+      success: true,
+      items: extractedItems,
+      source: "gemini_2.0_multimodal",
+      repaired: !rawOutput.trim().endsWith("]")
+    });
 
     return res.status(200).json({
       success: true,
