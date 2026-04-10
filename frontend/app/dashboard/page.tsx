@@ -5,11 +5,15 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, Minus, Trash, ArrowLeft, Loader2, ScanLine } from "lucide-react";
+import { Plus, Minus, Trash, ArrowLeft, Loader2, ScanLine, Edit2, Info, Check, X } from "lucide-react";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "@/lib/firebase/config";
 import { collection, onSnapshot, query, orderBy, updateDoc, deleteDoc, doc } from "firebase/firestore";
-import { getFoodImage } from "@/lib/food-dictionary";
+import { AddItemModal } from "@/components/dashboard/AddItemModal";
+import { BatchBreakdown } from "@/components/dashboard/BatchBreakdown";
+
+
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -17,55 +21,100 @@ export default function Dashboard() {
 
   const [items, setItems] = useState<any[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [adjustingId, setAdjustingId] = useState<string | null>(null);
+  const [viewingBatchesItem, setViewingBatchesItem] = useState<any | null>(null);
+  const [deductValue, setDeductValue] = useState("");
+
+
+
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
 
-  useEffect(() => {
+   useEffect(() => {
     if (!user) return;
     
     const q = query(collection(db, "pantry", user.uid, "items"), orderBy("createdAt", "desc"));
     
-    const unsubscribe = onSnapshot(q, async (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const rawItems = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      // Dynamically attach specific images using the intelligent proxy dictionary
-      const hydratedItems = await Promise.all(rawItems.map(async (item: any) => {
-         const image = item.imageUrl ? item.imageUrl : await getFoodImage(item.name);
-         return { ...item, displayImage: image };
-      }));
-
-      setItems(hydratedItems);
+      setItems(rawItems);
       setDataLoaded(true);
     });
 
     return () => unsubscribe();
   }, [user]);
-
-  const updateQuantity = async (id: string, currentQty: number, adjustment: number) => {
+  const handleAction = async (id: string, action: "use" | "half") => {
     if (!user) return;
-    const newQty = Math.max(0, currentQty + adjustment);
-    const itemRef = doc(db, "pantry", user.uid, "items", id);
-
-    if (newQty === 0) {
-      await deleteDoc(itemRef);
-    } else {
-      await updateDoc(itemRef, { quantity: newQty });
+    try {
+      const idToken = await user.getIdToken();
+      await fetch(`http://localhost:5000/api/pantry/${id}/${action}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` }
+      });
+    } catch (error) {
+      console.error(`Error performing ${action}:`, error);
     }
-    // Note: No ui state setting here. onSnapshot handles it perfectly in real-time!
+  };
+
+  const handleAdjust = async (id: string) => {
+    if (!user || !deductValue) return;
+    try {
+      const idToken = await user.getIdToken();
+      const response = await fetch(`http://localhost:5000/api/pantry/${id}/adjust`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}` 
+        },
+        body: JSON.stringify({ deductAmount: Number(deductValue) })
+      });
+      if (response.ok) {
+        setAdjustingId(null);
+        setDeductValue("");
+      }
+    } catch (error) {
+      console.error("Error adjusting quantity:", error);
+    }
   };
 
   const deleteItem = async (id: string) => {
     if (!user) return;
-    await deleteDoc(doc(db, "pantry", user.uid, "items", id));
+    try {
+      const idToken = await user.getIdToken();
+      await fetch(`http://localhost:5000/api/pantry/${id}/finish`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` }
+      });
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
   };
 
-  const calculateExpiryColor = (expiry: string) => {
-     if (!expiry) return "bg-gray-100 text-gray-600";
-     // Placeholder basic logic - expand with date-fns if wanted
-     return "bg-red-100 text-red-600"; 
+
+  const getSoonestExpiry = (item: any) => {
+    if (item.batches && item.batches.length > 0) {
+      const expiries = item.batches
+        .map((b: any) => b.expiry)
+        .filter(Boolean)
+        .sort((a: string, b: string) => new Date(a).getTime() - new Date(b).getTime());
+      return expiries[0] || null;
+    }
+    return item.expiry || null;
   };
+
+  const calculateExpiryColor = (expiry: string | null) => {
+     if (!expiry) return "bg-gray-100 text-gray-600";
+     const diff = new Date(expiry).getTime() - new Date().getTime();
+     const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+     
+     if (days <= 0) return "bg-red-100 text-red-600";
+     if (days <= 3) return "bg-orange-100 text-orange-600";
+     return "bg-green-100 text-green-600"; 
+  };
+
 
   if (loading || !user) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
@@ -86,9 +135,13 @@ export default function Dashboard() {
            <Button onClick={() => router.push("/scan")} className="rounded-xl shadow-apricot-400/40 bg-apricot-400 hover:bg-apricot-500 text-white border-0">
              <ScanLine size={18} className="mr-2" /> Smart Scan
            </Button>
-           <Button variant="outline" className="rounded-xl border-dashed">
-             <Plus size={18} className="mr-2" /> Add Item
-           </Button>
+            <Button 
+              onClick={() => setIsAddModalOpen(true)}
+              variant="outline" 
+              className="rounded-xl border-dashed border-2 hover:border-apricot-400 hover:text-apricot-600 transition-all"
+            >
+              <Plus size={18} className="mr-2" /> Add Item
+            </Button>
         </div>
       </div>
 
@@ -120,31 +173,89 @@ export default function Dashboard() {
                 <Card className="hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden p-0 border-0 shadow-lg bg-white relative group">
                   <div className="h-40 w-full bg-cover bg-center overflow-hidden relative">
                     <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                    <img src={item.displayImage} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 delay-100" />
+                     <img 
+                      src={item.imageUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80"} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 delay-100" 
+                    />
                     
-                    {item.expiry && (
-                       <span className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full shadow-lg ${calculateExpiryColor(item.expiry)}`}>
-                         Exp: {item.expiry}
+                    {getSoonestExpiry(item) && (
+                       <span className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full shadow-lg ${calculateExpiryColor(getSoonestExpiry(item))}`}>
+                         Exp: {getSoonestExpiry(item)}
                        </span>
                     )}
                   </div>
                   
                   <div className="p-5">
-                    <h3 className="text-xl font-bold text-bordeaux-800 capitalize mb-1 truncate">{item.name}</h3>
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="text-xl font-bold text-bordeaux-800 capitalize truncate flex-1">{item.name}</h3>
+                      {item.batches && item.batches.length > 1 && (
+                        <button 
+                          onClick={() => setViewingBatchesItem(item)}
+                          className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center hover:bg-blue-100 transition-colors"
+                        >
+                          <Info size={10} className="mr-1" /> {item.batches.length} Batches
+                        </button>
+                      )}
+                    </div>
                     <p className="text-bordeaux-500 font-medium text-sm mb-4">{item.quantity} {item.unit}</p>
                     
-                    <div className="flex gap-2 w-full">
-                      <Button variant="outline" onClick={() => updateQuantity(item.id, item.quantity, -1)} className="flex-1 px-0 py-2 h-10 border-apricot-300 text-apricot-700 hover:bg-apricot-50"><Minus size={16} className="mr-1" /> Use</Button>
-                      <Button variant="outline" onClick={() => updateQuantity(item.id, item.quantity, -(item.quantity * 0.5))} className="flex-1 px-0 py-2 h-10 border-apricot-300 text-apricot-700 hover:bg-apricot-50">Half</Button>
-                      <Button onClick={() => deleteItem(item.id)} variant="outline" className="flex-1 px-0 py-2 h-10 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"><Trash size={16} /></Button>
+                    <div className="flex flex-col gap-2">
+                       <AnimatePresence>
+                        {adjustingId === item.id ? (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }} 
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="bg-gray-50 p-2 rounded-xl border border-gray-200 flex gap-2 mb-1"
+                          >
+                            <input 
+                              autoFocus
+                              type="number" 
+                              step="0.01"
+                              placeholder="Deduct..."
+                              value={deductValue}
+                              onChange={(e) => setDeductValue(e.target.value)}
+                              className="flex-1 bg-white border-0 text-sm px-2 h-8 rounded-lg outline-none focus:ring-1 ring-apricot-400"
+                            />
+                            <Button onClick={() => handleAdjust(item.id)} className="h-8 w-8 p-0 bg-green-500 hover:bg-green-600 text-white"><Check size={14} /></Button>
+                            <Button onClick={() => setAdjustingId(null)} className="h-8 w-8 p-0 bg-gray-200 text-gray-400 hover:bg-gray-300"><X size={14} /></Button>
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
+
+                      <div className="flex gap-2 w-full">
+                        <Button variant="outline" onClick={() => handleAction(item.id, "use")} className="flex-1 px-0 py-2 h-10 border-apricot-300 text-apricot-700 hover:bg-apricot-50 shadow-sm"><Minus size={16} className="mr-1" /> Use</Button>
+                        <Button variant="outline" onClick={() => handleAction(item.id, "half")} className="flex-1 px-0 py-2 h-10 border-apricot-300 text-apricot-700 hover:bg-apricot-50 shadow-sm">Half</Button>
+                        <Button variant="outline" onClick={() => setAdjustingId(item.id)} className="flex-none w-10 h-10 p-0 border-gray-200 text-gray-500 hover:bg-gray-50 flex items-center justify-center"><Edit2 size={16} /></Button>
+                        <Button onClick={() => deleteItem(item.id)} variant="outline" className="flex-none w-10 h-10 p-0 border-red-100 text-red-500 hover:bg-red-50 hover:text-red-600 flex items-center justify-center"><Trash size={16} /></Button>
+                      </div>
                     </div>
                   </div>
+
                 </Card>
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
       )}
+
+      {/* Add Item Modal */}
+      <AddItemModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
+
+      {/* Batch Breakdown Modal */}
+      <BatchBreakdown
+        isOpen={!!viewingBatchesItem}
+        onClose={() => setViewingBatchesItem(null)}
+        itemName={viewingBatchesItem?.name || ""}
+        unit={viewingBatchesItem?.unit || ""}
+        batches={viewingBatchesItem?.batches || []}
+      />
     </div>
   );
 }
+
+

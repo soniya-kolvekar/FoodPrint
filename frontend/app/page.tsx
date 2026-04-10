@@ -1,7 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
-import { COMMON_FOOD_IMAGES } from "@/lib/food-dictionary";
 import Link from "next/link";
 import { LayoutDashboard, Utensils, Zap, Calendar, Bell, Scan, LineChart, ChefHat, Save, Sparkles, HeartHandshake } from "lucide-react";
 
@@ -55,10 +54,10 @@ export default function Home() {
 
            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { name: "Avocados", time: "2 Days Left", image: COMMON_FOOD_IMAGES.avocados, color: "text-[#cf3053] bg-[#faeaee]" },
-                { name: "Strawberries", time: "4 Days Left", image: COMMON_FOOD_IMAGES.strawberries, color: "text-[#e98016] bg-[#fdf2e8]" },
-                { name: "Apples", time: "9 Days Left", image: COMMON_FOOD_IMAGES.apples, color: "text-green-600 bg-green-50" },
-                { name: "Kale", time: "1 Day Left", image: COMMON_FOOD_IMAGES.kale, color: "text-[#cf3053] bg-[#faeaee]" },
+                { name: "Avocados", time: "2 Days Left", image: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=500&q=80", color: "text-[#cf3053] bg-[#faeaee]" },
+                { name: "Strawberries", time: "4 Days Left", image: "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=500&q=80", color: "text-[#e98016] bg-[#fdf2e8]" },
+                { name: "Apples", time: "9 Days Left", image: "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=500&q=80", color: "text-green-600 bg-green-50" },
+                { name: "Kale", time: "1 Day Left", image: "https://images.unsplash.com/photo-1524179091875-bf99a9a6af57?w=500&q=80", color: "text-[#cf3053] bg-[#faeaee]" },
               ].map((item, i) => (
                  <div key={i} className="bg-[#faf7f5] rounded-[32px] p-3 border border-black/5 hover:-translate-y-2 hover:shadow-xl transition-all group cursor-pointer">
                     <div className="w-full h-[140px] rounded-[24px] bg-cover bg-center mb-4 overflow-hidden">
