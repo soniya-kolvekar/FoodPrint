@@ -4,7 +4,9 @@ const recipeController = require("../controllers/recipe.controller");
 
 const router = express.Router();
 
-router.use(protect);
+router.get("/substitutes", recipeController.getSubstitutes); // Public route
+
+router.use(protect); // All routes below require auth
 router.get("/", recipeController.getRecipes);
 router.get("/:id", recipeController.getRecipeDetails);
 router.post("/:id/cook", recipeController.cookRecipe);
