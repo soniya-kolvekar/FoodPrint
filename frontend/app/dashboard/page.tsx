@@ -1,10 +1,15 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Minus, Trash, Utensils, ArrowLeft, LayoutGrid, Flame, Clock, ThermometerSnowflake, Search, ChevronDown, CheckCircle2, ChevronRight, Wand2, ArrowUpRight } from "lucide-react";
+import { Plus, Minus, Trash, Utensils, ArrowLeft, LayoutGrid, Flame, Clock, ThermometerSnowflake, Search, ChevronDown, CheckCircle2, ChevronRight, Wand2, ArrowUpRight, Loader2, ScanLine, Edit2, Info, Check, X } from "lucide-react";
+
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { db } from "@/lib/firebase/config";
+import { collection, onSnapshot, query, orderBy, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { AddItemModal } from "@/components/dashboard/AddItemModal";
+import { BatchBreakdown } from "@/components/dashboard/BatchBreakdown";
 
 interface PantryItem {
   id: string;
@@ -13,13 +18,30 @@ interface PantryItem {
   unit: string;
   expiry: string;
   imageUrl?: string;
+  batches?: any[];
+  createdAt?: string;
 }
+
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [items, setItems] = useState<PantryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [adjustingId, setAdjustingId] = useState<string | null>(null);
+  const [viewingBatchesItem, setViewingBatchesItem] = useState<any | null>(null);
+  const [deductValue, setDeductValue] = useState("");
+
+
+
+
+
+  const normalize = (str: string) => {
+    if (!str) return "";
+    return str.toLowerCase().trim().replace(/s$/, "");
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -28,28 +50,109 @@ export default function Dashboard() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/pantry/items");
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setItems(data);
+    if (!user) return;
+    
+    const q = query(collection(db, "pantry", user.uid, "items"), orderBy("createdAt", "desc"));
+    
+    return onSnapshot(q, (snapshot) => {
+      const raw = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+      
+      // CLIENT-SIDE SMART MERGE
+      const merged: PantryItem[] = [];
+      const groups: Record<string, any> = {};
+
+      raw.forEach((item) => {
+        const key = `${normalize(item.name)}|${normalize(item.unit)}`;
+        if (!groups[key]) {
+          groups[key] = { ...item };
+          if (!groups[key].batches) {
+            groups[key].batches = [{ 
+              id: "legacy", 
+              quantity: item.quantity, 
+              expiry: item.expiry, 
+              addedAt: item.createdAt || new Date().toISOString() 
+            }];
+          }
+          merged.push(groups[key]);
         } else {
-          // Mock data for beautiful initialization
-          setItems([
-            { id: "1", name: "Fresh Milk", quantity: 1, unit: "Litre", expiry: new Date(Date.now() + 86400000 * 2).toISOString(), imageUrl: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400" },
-            { id: "2", name: "Spinach", quantity: 200, unit: "g", expiry: new Date(Date.now() + 86400000 * 1).toISOString(), imageUrl: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400" },
-            { id: "3", name: "Greek Yogurt", quantity: 500, unit: "g", expiry: new Date(Date.now() + 86400000 * 4).toISOString(), imageUrl: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400" },
-          ]);
+          const target = groups[key];
+          const batches = item.batches || [{ 
+            id: `dup-${item.id}`, 
+            quantity: item.quantity, 
+            expiry: item.expiry, 
+            addedAt: item.createdAt || new Date().toISOString() 
+          }];
+          target.batches = [...target.batches, ...batches];
+          // Recalculate total quantity
+          target.quantity = target.batches.reduce((acc: number, b: any) => acc + b.quantity, 0);
         }
-      } catch (e) {
-        console.error("Fetch failed", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (user) fetchItems();
+      });
+
+      setItems(merged);
+      setLoading(false);
+      setDataLoaded(true);
+    });
   }, [user]);
+
+  const handleAction = async (id: string, action: "use" | "half") => {
+    if (!user) return;
+    try {
+      const idToken = await user.getIdToken();
+      await fetch(`http://localhost:5000/api/pantry/${id}/${action}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` }
+      });
+    } catch (error) {
+      console.error(`Error performing ${action}:`, error);
+    }
+  };
+
+  const handleAdjust = async (id: string) => {
+    if (!user || !deductValue) return;
+    try {
+      const idToken = await user.getIdToken();
+      const response = await fetch(`http://localhost:5000/api/pantry/${id}/adjust`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}` 
+        },
+        body: JSON.stringify({ deductAmount: Number(deductValue) })
+      });
+      if (response.ok) {
+        setAdjustingId(null);
+        setDeductValue("");
+      }
+    } catch (error) {
+      console.error("Error adjusting quantity:", error);
+    }
+  };
+
+  const deleteItem = async (id: string) => {
+    if (!user) return;
+    try {
+      const idToken = await user.getIdToken();
+      await fetch(`http://localhost:5000/api/pantry/${id}/finish`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` }
+      });
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
+  };
+
+
+  const getSoonestExpiry = (item: any) => {
+    if (item.batches && item.batches.length > 0) {
+      const expiries = item.batches
+        .map((b: any) => b.expiry)
+        .filter(Boolean)
+        .sort((a: string, b: string) => new Date(a).getTime() - new Date(b).getTime());
+      return expiries[0] || null;
+    }
+    return item.expiry || null;
+  };
+
 
   const getDaysRemaining = (expiry: string) => {
     const today = new Date();
@@ -91,7 +194,10 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center gap-8">
            <Link href="/substitutes" className="text-[14px] font-bold text-white/60 hover:text-white transition">Substitutes</Link>
-           <button className="bg-white text-black py-2.5 px-7 rounded-full text-[13px] font-semibold hover:bg-neutral-200 transition active:scale-95 shadow-xl">
+           <button 
+             onClick={() => setIsAddModalOpen(true)}
+             className="bg-white text-black py-2.5 px-7 rounded-full text-[13px] font-semibold hover:bg-neutral-200 transition active:scale-95 shadow-xl"
+           >
              New Item
            </button>
         </div>
@@ -105,28 +211,30 @@ export default function Dashboard() {
                   <h1 className="text-[64px] font-serif leading-none tracking-tight mb-8">Pantry <span className="italic font-normal opacity-40">Intelligence</span></h1>
                   <p className="text-[20px] text-white/40 leading-relaxed font-medium max-w-[600px]">
                     Hello, <span className="text-white">{user?.displayName || "Culinary Explorer"}</span>. <br />
-                    Your inventory is optimized. 3 items require immediate attention.
+                    Your inventory is optimized. {items.filter(item => getDaysRemaining(getSoonestExpiry(item) || "") <= 3).length} items require immediate attention.
                   </p>
                </motion.div>
             </div>
             
             {/* HEATMAP ACTION CARD */}
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-               <Link href="/expiry-heatmap">
-                  <div className="relative group cursor-pointer">
-                    <div className="absolute -inset-[1px] rounded-[32px] bg-gradient-to-r from-[#FF512F] to-[#6e56cf] opacity-50 group-hover:opacity-100 blur-[2px] transition duration-700"></div>
-                    <div className="relative bg-[#1c1b1f] rounded-[32px] p-10 border border-white/5 flex items-center gap-10">
-                       <div className="flex flex-col">
-                          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF512F] mb-3">Live Analysis</span>
-                          <span className="text-[24px] font-bold mb-2">Expiry Heatmap</span>
-                          <span className="text-[14px] text-white/40">Visual impact visualization</span>
-                       </div>
-                       <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center text-white/80 group-hover:bg-[#FF512F] group-hover:text-white transition duration-500">
-                          <ArrowUpRight size={28} />
-                       </div>
+               <div className="flex gap-6">
+                 <Link href="/expiry-heatmap">
+                    <div className="relative group cursor-pointer">
+                      <div className="absolute -inset-[1px] rounded-[32px] bg-gradient-to-r from-[#FF512F] to-[#6e56cf] opacity-50 group-hover:opacity-100 blur-[2px] transition duration-700"></div>
+                      <div className="relative bg-[#1c1b1f] rounded-[32px] p-10 border border-white/5 flex items-center gap-10">
+                         <div className="flex flex-col">
+                            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF512F] mb-3">Live Analysis</span>
+                            <span className="text-[24px] font-bold mb-2">Expiry Heatmap</span>
+                            <span className="text-[14px] text-white/40">Visual impact visualization</span>
+                         </div>
+                         <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center text-white/80 group-hover:bg-[#FF512F] group-hover:text-white transition duration-500">
+                            <ArrowUpRight size={28} />
+                         </div>
+                      </div>
                     </div>
-                  </div>
-               </Link>
+                 </Link>
+               </div>
             </motion.div>
          </div>
 
@@ -134,7 +242,8 @@ export default function Dashboard() {
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             <AnimatePresence>
                {items.map((item, idx) => {
-                 const days = getDaysRemaining(item.expiry);
+                 const soonest = getSoonestExpiry(item);
+                 const days = soonest ? getDaysRemaining(soonest) : 999;
                  const urgencyColor = getUrgencyColor(days);
                  
                  return (
@@ -149,22 +258,73 @@ export default function Dashboard() {
                         <div className="h-16 w-16 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-[#6e56cf] group-hover:bg-[#6e56cf] group-hover:text-white transition duration-500 overflow-hidden">
                            {item.imageUrl ? <img src={item.imageUrl} className="w-full h-full object-cover opacity-80" /> : <Utensils size={32} />}
                         </div>
-                        <div className={`px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/5 text-[11px] font-bold uppercase tracking-widest ${urgencyColor}`}>
-                           {days} days
+                        <div className="flex flex-col items-end gap-2">
+                          <div className={`px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/5 text-[11px] font-bold uppercase tracking-widest ${urgencyColor}`}>
+                             {days <= 0 ? "Expired" : `${days} days`}
+                          </div>
+                          {item.batches && item.batches.length > 1 && (
+                            <button 
+                              onClick={() => setViewingBatchesItem(item)}
+                              className="text-[10px] font-bold text-[#6e56cf] flex items-center gap-1 hover:text-white transition"
+                            >
+                              <Info size={10} /> {item.batches.length} Batches
+                            </button>
+                          )}
                         </div>
                      </div>
 
-                     <h3 className="text-[28px] font-bold tracking-tight mb-3 transition group-hover:text-[#6e56cf]">{item.name}</h3>
+                     <h3 className="text-[28px] font-bold tracking-tight mb-3 transition group-hover:text-[#6e56cf] truncate capitalize">{item.name}</h3>
                      <p className="text-[16px] text-white/30 font-medium mb-10">{item.quantity} {item.unit}</p>
 
-                     <div className="flex gap-4">
-                        <button className="flex-1 py-4 px-2 rounded-2xl bg-white/[0.04] border border-white/5 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition flex items-center justify-center gap-3">
-                           <Minus size={14} /> Use
-                        </button>
-                        <button className="flex-1 py-4 px-2 rounded-2xl bg-white/[0.04] border border-white/5 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition">Half</button>
-                        <button className="w-14 h-14 rounded-2xl bg-[#FF512F]/10 border border-[#FF512F]/20 text-[#FF512F] flex items-center justify-center hover:bg-[#FF512F] hover:text-white transition">
-                           <Trash size={18} />
-                        </button>
+                     <div className="flex flex-col gap-4">
+                        <AnimatePresence mode="wait">
+                          {adjustingId === item.id ? (
+                            <motion.div 
+                              key="deduct-mode"
+                              initial={{ scale: 0.9, opacity: 0 }} 
+                              animate={{ scale: 1, opacity: 1 }}
+                              exit={{ scale: 0.9, opacity: 0 }}
+                              className="bg-white/5 p-4 rounded-2xl border border-white/10 flex flex-col gap-4"
+                            >
+                               <div className="flex gap-2">
+                                  <input 
+                                    autoFocus
+                                    type="number" 
+                                    step="0.01"
+                                    placeholder="Amount..."
+                                    value={deductValue}
+                                    onChange={(e) => setDeductValue(e.target.value)}
+                                    className="flex-1 bg-white/5 border border-white/10 text-sm px-4 rounded-xl outline-none focus:border-[#6e56cf] transition-colors font-bold text-white"
+                                  />
+                                  <div className="flex gap-2">
+                                    <button onClick={() => handleAdjust(item.id)} className="p-3 bg-green-500/20 hover:bg-green-500 text-white rounded-xl transition"><Check size={18} /></button>
+                                    <button onClick={() => setAdjustingId(null)} className="p-3 bg-white/5 text-white/40 hover:bg-white/10 rounded-xl transition"><X size={18} /></button>
+                                  </div>
+                               </div>
+                            </motion.div>
+                          ) : (
+                            <motion.div 
+                              key="standard-mode"
+                              initial={{ opacity: 0 }} 
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="flex gap-4"
+                            >
+                              <button onClick={() => handleAction(item.id, "use")} className="flex-1 py-4 px-2 rounded-2xl bg-white/[0.04] border border-white/5 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition flex items-center justify-center gap-3">
+                                 <Minus size={14} /> Use
+                              </button>
+                              <button onClick={() => handleAction(item.id, "half")} className="flex-1 py-4 px-2 rounded-2xl bg-white/[0.04] border border-white/5 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition">Half</button>
+                              
+                              <button onClick={() => setAdjustingId(item.id)} className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 text-white/40 flex items-center justify-center hover:bg-white/10 hover:text-white transition">
+                                 <Edit2 size={18} />
+                              </button>
+                              
+                              <button onClick={() => deleteItem(item.id)} className="w-14 h-14 rounded-2xl bg-[#FF512F]/10 border border-[#FF512F]/20 text-[#FF512F] flex items-center justify-center hover:bg-[#FF512F] hover:text-white transition">
+                                 <Trash size={18} />
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                      </div>
                    </motion.div>
                  );
@@ -172,7 +332,11 @@ export default function Dashboard() {
             </AnimatePresence>
 
             {/* ADD ITEM PLACEHOLDER */}
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="rounded-[40px] border-2 border-dashed border-white/5 flex flex-col items-center justify-center p-12 hover:border-[#6e56cf]/40 transition duration-500 cursor-pointer group">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} 
+              onClick={() => setIsAddModalOpen(true)}
+              className="rounded-[40px] border-2 border-dashed border-white/5 flex flex-col items-center justify-center p-12 hover:border-[#6e56cf]/40 transition duration-500 cursor-pointer group"
+            >
                <div className="w-16 h-16 rounded-full bg-white/[0.03] flex items-center justify-center text-white/20 group-hover:bg-[#6e56cf]/20 group-hover:text-[#6e56cf] transition duration-500 mb-6">
                   <Plus size={32} />
                </div>
@@ -190,6 +354,24 @@ export default function Dashboard() {
             </div>
          </div>
       </footer>
+
+      {/* Add Item Modal */}
+      <AddItemModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
+
+      {/* Batch Breakdown Modal */}
+      <BatchBreakdown
+        isOpen={!!viewingBatchesItem}
+        onClose={() => setViewingBatchesItem(null)}
+        itemName={viewingBatchesItem?.name || ""}
+        unit={viewingBatchesItem?.unit || ""}
+        batches={viewingBatchesItem?.batches || []}
+      />
+
     </div>
   );
 }
+
+

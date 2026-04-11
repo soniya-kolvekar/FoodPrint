@@ -9,10 +9,12 @@ app.use(express.json());
 const userRoutes = require("./routes/user.routes");
 const pantryRoutes = require("./routes/pantry.routes");
 const recipeRoutes = require("./routes/recipe.routes");
+const scanRoutes = require("./routes/scan.routes");
 
 app.use("/api/users", userRoutes);
 app.use("/api/pantry", pantryRoutes);
 app.use("/api/recipes", recipeRoutes);
+app.use("/api/scan", scanRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "FoodPrint API is running" });

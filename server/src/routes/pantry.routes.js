@@ -8,8 +8,10 @@ router.use(protect);
 
 router.get("/", pantryController.getItems);
 router.post("/", pantryController.addItem);
+router.post("/bulk-add", pantryController.bulkAddItems);
 router.post("/:id/use", pantryController.useItem);
 router.post("/:id/half", pantryController.halfItem);
+router.post("/:id/adjust", pantryController.adjustQuantity);
 router.post("/:id/finish", pantryController.finishItem);
 
 module.exports = router;
