@@ -5,7 +5,9 @@ const userRecipeController = require("../controllers/userRecipe.controller");
 
 const router = express.Router();
 
-router.use(protect);
+router.get("/substitutes", recipeController.getSubstitutes); // Public route
+
+router.use(protect); // All routes below require auth
 
 router.get("/", recipeController.getRecipes);
 router.get("/saved", userRecipeController.getSavedRecipes);

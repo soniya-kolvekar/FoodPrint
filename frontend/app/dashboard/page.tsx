@@ -1,30 +1,39 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Minus, Trash, Utensils, ArrowLeft, LayoutGrid, Flame, Clock, ThermometerSnowflake, Search, ChevronDown, CheckCircle2, ChevronRight, Wand2, ArrowUpRight, Loader2, ScanLine, Edit2, Info, Check, X } from "lucide-react";
+
 import { useAuth } from "@/context/AuthContext";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, Minus, Trash, ArrowLeft, Loader2, ScanLine, Edit2, Info, Check, X } from "lucide-react";
-
-import { motion, AnimatePresence } from "framer-motion";
 import { db } from "@/lib/firebase/config";
 import { collection, onSnapshot, query, orderBy, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { AddItemModal } from "@/components/dashboard/AddItemModal";
 import { BatchBreakdown } from "@/components/dashboard/BatchBreakdown";
 
+interface PantryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  expiry: string;
+  imageUrl?: string;
+  batches?: any[];
+  createdAt?: string;
+}
 
 
 export default function Dashboard() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<PantryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [adjustingId, setAdjustingId] = useState<string | null>(null);
   const [viewingBatchesItem, setViewingBatchesItem] = useState<any | null>(null);
   const [deductValue, setDeductValue] = useState("");
+
 
 
 
@@ -35,6 +44,12 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
     if (!user) return;
     
     const q = query(collection(db, "pantry", user.uid, "items"), orderBy("createdAt", "desc"));
@@ -43,7 +58,7 @@ export default function Dashboard() {
       const raw = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
       
       // CLIENT-SIDE SMART MERGE
-      const merged: any[] = [];
+      const merged: PantryItem[] = [];
       const groups: Record<string, any> = {};
 
       raw.forEach((item) => {
@@ -74,9 +89,11 @@ export default function Dashboard() {
       });
 
       setItems(merged);
+      setLoading(false);
       setDataLoaded(true);
     });
   }, [user]);
+
   const handleAction = async (id: string, action: "use" | "half") => {
     if (!user) return;
     try {
@@ -136,152 +153,207 @@ export default function Dashboard() {
     return item.expiry || null;
   };
 
-  const calculateExpiryColor = (expiry: string | null) => {
-     if (!expiry) return "bg-gray-100 text-gray-600";
-     const diff = new Date(expiry).getTime() - new Date().getTime();
-     const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-     
-     if (days <= 0) return "bg-red-100 text-red-600";
-     if (days <= 3) return "bg-orange-100 text-orange-600";
-     return "bg-green-100 text-green-600"; 
+
+  const getDaysRemaining = (expiry: string) => {
+    const today = new Date();
+    const expiryDate = new Date(expiry);
+    const diff = expiryDate.getTime() - today.getTime();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
+  const getUrgencyColor = (days: number) => {
+    if (days <= 2) return "text-[#FF512F]";
+    if (days <= 5) return "text-[#F09819]";
+    return "text-white/40";
+  };
 
-  if (loading || !user) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (authLoading || !user) return null;
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
-      <div className="mb-6">
-        <Link href="/" className="inline-flex items-center text-sm font-bold text-gray-500 hover:text-[#ff6670] transition-colors bg-white/50 px-4 py-2 rounded-full border border-gray-200">
-           <ArrowLeft size={16} className="mr-2" /> Back to Home
-        </Link>
+    <div className="min-h-screen bg-[#1c1b1f] text-white relative overflow-x-hidden font-sans selection:bg-[#6e56cf]/40">
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+        .font-serif { font-family: 'Playfair Display', serif; }
+      `}</style>
+
+      {/* BACKGROUND ELEMENTS */}
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.05]">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#6e56cf] rounded-full blur-[200px] -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#FF512F] rounded-full blur-[180px] translate-y-1/2 -translate-x-1/2"></div>
       </div>
-      
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-        <div>
-          <h1 className="text-4xl font-bold text-bordeaux-800">Your Pantry</h1>
-          <p className="text-bordeaux-600 mt-2">Manage your items and prevent waste</p>
+
+      <nav className="fixed top-0 inset-x-0 h-[72px] flex items-center justify-between px-10 z-[100] bg-[#1c1b1f]/10 backdrop-blur-3xl border-b border-white/[0.04]">
+        <div className="flex items-center gap-[48px]">
+           <Link href="/" className="flex items-center gap-2 font-bold text-[22px] tracking-tighter">
+             <div className="w-[20px] h-[20px] rounded-[4px] bg-gradient-to-tr from-[#FF512F] to-[#DD2476]"></div>
+             FoodPrint
+           </Link>
+           <div className="hidden xl:flex items-center gap-[32px] text-[14px] font-bold tracking-widest uppercase text-white/40">
+             Dashboard Core
+           </div>
         </div>
-        <div className="flex gap-3">
-           <Button onClick={() => router.push("/scan")} className="rounded-xl shadow-apricot-400/40 bg-apricot-400 hover:bg-apricot-500 text-white border-0">
-             <ScanLine size={18} className="mr-2" /> Smart Scan
-           </Button>
-            <Button 
+        <div className="flex items-center gap-8">
+           <Link href="/substitutes" className="text-[14px] font-bold text-white/60 hover:text-white transition">Substitutes</Link>
+           <button 
+             onClick={() => setIsAddModalOpen(true)}
+             className="bg-white text-black py-2.5 px-7 rounded-full text-[13px] font-semibold hover:bg-neutral-200 transition active:scale-95 shadow-xl"
+           >
+             New Item
+           </button>
+        </div>
+      </nav>
+
+      <main className="relative z-10 w-full max-w-[1400px] mx-auto px-10 pt-[140px] pb-32">
+         {/* WELCOME SECTION */}
+         <div className="flex flex-col lg:flex-row justify-between items-end mb-24 gap-12">
+            <div>
+               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                  <h1 className="text-[64px] font-serif leading-none tracking-tight mb-8">Pantry <span className="italic font-normal opacity-40">Intelligence</span></h1>
+                  <p className="text-[20px] text-white/40 leading-relaxed font-medium max-w-[600px]">
+                    Hello, <span className="text-white">{user?.displayName || "Culinary Explorer"}</span>. <br />
+                    Your inventory is optimized. {items.filter(item => getDaysRemaining(getSoonestExpiry(item) || "") <= 3).length} items require immediate attention.
+                  </p>
+               </motion.div>
+            </div>
+            
+            {/* HEATMAP ACTION CARD */}
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+               <div className="flex gap-6">
+                 <Link href="/expiry-heatmap">
+                    <div className="relative group cursor-pointer">
+                      <div className="absolute -inset-[1px] rounded-[32px] bg-gradient-to-r from-[#FF512F] to-[#6e56cf] opacity-50 group-hover:opacity-100 blur-[2px] transition duration-700"></div>
+                      <div className="relative bg-[#1c1b1f] rounded-[32px] p-10 border border-white/5 flex items-center gap-10">
+                         <div className="flex flex-col">
+                            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF512F] mb-3">Live Analysis</span>
+                            <span className="text-[24px] font-bold mb-2">Expiry Heatmap</span>
+                            <span className="text-[14px] text-white/40">Visual impact visualization</span>
+                         </div>
+                         <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center text-white/80 group-hover:bg-[#FF512F] group-hover:text-white transition duration-500">
+                            <ArrowUpRight size={28} />
+                         </div>
+                      </div>
+                    </div>
+                 </Link>
+               </div>
+            </motion.div>
+         </div>
+
+         {/* PANTRY GRID */}
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <AnimatePresence>
+               {items.map((item, idx) => {
+                 const soonest = getSoonestExpiry(item);
+                 const days = soonest ? getDaysRemaining(soonest) : 999;
+                 const urgencyColor = getUrgencyColor(days);
+                 
+                 return (
+                   <motion.div 
+                     initial={{ opacity: 0, y: 30 }} 
+                     animate={{ opacity: 1, y: 0 }} 
+                     transition={{ delay: idx * 0.1 }} 
+                     key={item.id}
+                     className="group relative rounded-[40px] bg-[#1c1b1f] border border-white/5 p-10 hover:border-white/10 transition-all duration-700 hover:-translate-y-3 shadow-2xl"
+                   >
+                     <div className="flex justify-between items-start mb-10">
+                        <div className="h-16 w-16 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-[#6e56cf] group-hover:bg-[#6e56cf] group-hover:text-white transition duration-500 overflow-hidden">
+                           {item.imageUrl ? <img src={item.imageUrl} className="w-full h-full object-cover opacity-80" /> : <Utensils size={32} />}
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <div className={`px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/5 text-[11px] font-bold uppercase tracking-widest ${urgencyColor}`}>
+                             {days <= 0 ? "Expired" : `${days} days`}
+                          </div>
+                          {item.batches && item.batches.length > 1 && (
+                            <button 
+                              onClick={() => setViewingBatchesItem(item)}
+                              className="text-[10px] font-bold text-[#6e56cf] flex items-center gap-1 hover:text-white transition"
+                            >
+                              <Info size={10} /> {item.batches.length} Batches
+                            </button>
+                          )}
+                        </div>
+                     </div>
+
+                     <h3 className="text-[28px] font-bold tracking-tight mb-3 transition group-hover:text-[#6e56cf] truncate capitalize">{item.name}</h3>
+                     <p className="text-[16px] text-white/30 font-medium mb-10">{item.quantity} {item.unit}</p>
+
+                     <div className="flex flex-col gap-4">
+                        <AnimatePresence mode="wait">
+                          {adjustingId === item.id ? (
+                            <motion.div 
+                              key="deduct-mode"
+                              initial={{ scale: 0.9, opacity: 0 }} 
+                              animate={{ scale: 1, opacity: 1 }}
+                              exit={{ scale: 0.9, opacity: 0 }}
+                              className="bg-white/5 p-4 rounded-2xl border border-white/10 flex flex-col gap-4"
+                            >
+                               <div className="flex gap-2">
+                                  <input 
+                                    autoFocus
+                                    type="number" 
+                                    step="0.01"
+                                    placeholder="Amount..."
+                                    value={deductValue}
+                                    onChange={(e) => setDeductValue(e.target.value)}
+                                    className="flex-1 bg-white/5 border border-white/10 text-sm px-4 rounded-xl outline-none focus:border-[#6e56cf] transition-colors font-bold text-white"
+                                  />
+                                  <div className="flex gap-2">
+                                    <button onClick={() => handleAdjust(item.id)} className="p-3 bg-green-500/20 hover:bg-green-500 text-white rounded-xl transition"><Check size={18} /></button>
+                                    <button onClick={() => setAdjustingId(null)} className="p-3 bg-white/5 text-white/40 hover:bg-white/10 rounded-xl transition"><X size={18} /></button>
+                                  </div>
+                               </div>
+                            </motion.div>
+                          ) : (
+                            <motion.div 
+                              key="standard-mode"
+                              initial={{ opacity: 0 }} 
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="flex gap-4"
+                            >
+                              <button onClick={() => handleAction(item.id, "use")} className="flex-1 py-4 px-2 rounded-2xl bg-white/[0.04] border border-white/5 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition flex items-center justify-center gap-3">
+                                 <Minus size={14} /> Use
+                              </button>
+                              <button onClick={() => handleAction(item.id, "half")} className="flex-1 py-4 px-2 rounded-2xl bg-white/[0.04] border border-white/5 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition">Half</button>
+                              
+                              <button onClick={() => setAdjustingId(item.id)} className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 text-white/40 flex items-center justify-center hover:bg-white/10 hover:text-white transition">
+                                 <Edit2 size={18} />
+                              </button>
+                              
+                              <button onClick={() => deleteItem(item.id)} className="w-14 h-14 rounded-2xl bg-[#FF512F]/10 border border-[#FF512F]/20 text-[#FF512F] flex items-center justify-center hover:bg-[#FF512F] hover:text-white transition">
+                                 <Trash size={18} />
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                     </div>
+                   </motion.div>
+                 );
+               })}
+            </AnimatePresence>
+
+            {/* ADD ITEM PLACEHOLDER */}
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} 
               onClick={() => setIsAddModalOpen(true)}
-              variant="outline" 
-              className="rounded-xl border-dashed border-2 hover:border-apricot-400 hover:text-apricot-600 transition-all"
+              className="rounded-[40px] border-2 border-dashed border-white/5 flex flex-col items-center justify-center p-12 hover:border-[#6e56cf]/40 transition duration-500 cursor-pointer group"
             >
-              <Plus size={18} className="mr-2" /> Add Item
-            </Button>
-        </div>
-      </div>
+               <div className="w-16 h-16 rounded-full bg-white/[0.03] flex items-center justify-center text-white/20 group-hover:bg-[#6e56cf]/20 group-hover:text-[#6e56cf] transition duration-500 mb-6">
+                  <Plus size={32} />
+               </div>
+               <span className="text-[14px] font-bold uppercase tracking-widest text-white/20 group-hover:text-white/40 transition">Append Inventory</span>
+            </motion.div>
+         </div>
+      </main>
 
-      {!dataLoaded ? (
-        <div className="flex justify-center py-20">
-           <Loader2 className="animate-spin text-apricot-400" size={48} />
-        </div>
-      ) : items.length === 0 ? (
-        <div className="text-center py-32 bg-white/40 backdrop-blur-xl rounded-[40px] border border-dashed border-gray-300">
-           <ScanLine size={64} className="mx-auto text-gray-300 mb-6" />
-           <h2 className="text-2xl font-bold text-gray-400 mb-2">Your pantry is empty</h2>
-           <p className="text-gray-400 mb-8 max-w-sm mx-auto">Scan your first grocery receipt to instantly magically populate your inventory.</p>
-           <Button onClick={() => router.push("/scan")} className="bg-[#ff6670] border-0 text-white hover:scale-105 shadow-xl transition-all h-14 px-8 rounded-full text-lg font-bold">
-              Scan Receipt Now
-           </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          <AnimatePresence>
-            {items.map((item, i) => (
-              <motion.div 
-                layout
-                initial={{ opacity: 0, scale: 0.9 }} 
-                animate={{ opacity: 1, scale: 1 }} 
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2 }} 
-                key={item.id}
-              >
-                <Card className="hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden p-0 border-0 shadow-lg bg-white relative group">
-                  <div className="h-40 w-full bg-cover bg-center overflow-hidden relative">
-                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                     <img 
-                      src={item.imageUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80"} 
-                      alt={item.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 delay-100" 
-                    />
-                    
-                    {getSoonestExpiry(item) && (
-                       <span className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full shadow-lg ${calculateExpiryColor(getSoonestExpiry(item))}`}>
-                         Exp: {getSoonestExpiry(item)}
-                       </span>
-                    )}
-                  </div>
-                  
-                  <div className="p-5">
-                    <div className="flex justify-between items-start mb-1">
-                      <h3 className="text-xl font-bold text-bordeaux-800 capitalize truncate flex-1">{item.name}</h3>
-                      {item.batches && item.batches.length > 1 && (
-                        <button 
-                          onClick={() => setViewingBatchesItem(item)}
-                          className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center hover:bg-blue-100 transition-colors"
-                        >
-                          <Info size={10} className="mr-1" /> {item.batches.length} Batches
-                        </button>
-                      )}
-                    </div>
-                    <p className="text-bordeaux-500 font-medium text-sm mb-4">{item.quantity} {item.unit}</p>
-                    
-                    <div className="flex flex-col gap-2 relative h-[100px] justify-end">
-                       <AnimatePresence mode="wait">
-                        {adjustingId === item.id ? (
-                          <motion.div 
-                            key="deduct-mode"
-                            initial={{ scale: 0.9, opacity: 0 }} 
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-gray-50 p-2 rounded-2xl border border-gray-200 flex flex-col gap-2 absolute inset-0 z-10"
-                          >
-                             <div className="flex gap-2 h-full">
-                                <input 
-                                  autoFocus
-                                  type="number" 
-                                  step="0.01"
-                                  placeholder="Amount..."
-                                  value={deductValue}
-                                  onChange={(e) => setDeductValue(e.target.value)}
-                                  className="flex-1 bg-white border-2 border-gray-100 text-sm px-3 rounded-xl outline-none focus:border-apricot-400 transition-colors font-bold text-bordeaux-800"
-                                />
-                                <div className="flex flex-col gap-1">
-                                  <Button onClick={() => handleAdjust(item.id)} className="h-full px-4 bg-green-500 hover:bg-green-600 text-white rounded-xl"><Check size={18} /></Button>
-                                  <Button onClick={() => setAdjustingId(null)} className="h-full px-4 bg-gray-200 text-gray-500 hover:bg-gray-300 rounded-xl"><X size={18} /></Button>
-                                </div>
-                             </div>
-                          </motion.div>
-                        ) : (
-                          <motion.div 
-                            key="standard-mode"
-                            initial={{ opacity: 0 }} 
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="flex gap-2 w-full h-12"
-                          >
-                            <Button variant="outline" onClick={() => handleAction(item.id, "use")} className="flex-1 px-0 py-2 h-12 border-apricot-300 text-apricot-700 hover:bg-apricot-50 shadow-sm font-bold active:scale-95 transition-all"><Minus size={16} className="mr-1" /> Use</Button>
-                            <Button variant="outline" onClick={() => handleAction(item.id, "half")} className="flex-1 px-0 py-2 h-12 border-apricot-300 text-apricot-700 hover:bg-apricot-50 shadow-sm font-bold active:scale-95 transition-all">Half</Button>
-                            <Button variant="outline" onClick={() => setAdjustingId(item.id)} className="flex-none w-12 h-12 p-0 border-gray-200 text-gray-500 hover:bg-gray-50 flex items-center justify-center rounded-xl active:scale-95 transition-all"><Edit2 size={18} /></Button>
-                            <Button onClick={() => deleteItem(item.id)} variant="outline" className="flex-none w-12 h-12 p-0 border-red-100 text-red-500 hover:bg-red-50 hover:text-red-600 flex items-center justify-center rounded-xl active:scale-95 transition-all"><Trash size={18} /></Button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                  </div>
-
-                </Card>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
+      <footer className="w-full bg-[#1c1b1f] border-t border-white/5 py-16 px-12 relative z-30 opacity-40">
+         <div className="max-w-[1400px] mx-auto flex justify-between items-center text-[12px] font-bold uppercase tracking-widest text-white/40">
+            <span>© 2026 FoodPrint Systems</span>
+            <div className="flex gap-12">
+               <span className="hover:text-white cursor-pointer transition">Terminal</span>
+               <span className="hover:text-white cursor-pointer transition">Neural Link</span>
+            </div>
+         </div>
+      </footer>
 
       {/* Add Item Modal */}
       <AddItemModal 
@@ -297,6 +369,7 @@ export default function Dashboard() {
         unit={viewingBatchesItem?.unit || ""}
         batches={viewingBatchesItem?.batches || []}
       />
+
     </div>
   );
 }

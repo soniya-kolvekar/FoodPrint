@@ -6,12 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
-import { Search, ChefHat, Clock, ArrowLeft, Heart, Flame, Soup, Coffee, Cookie, Loader2, Sparkles, Filter } from "lucide-react";
+import { Search, ChefHat, Clock, ArrowLeft, Wand2, Heart, Flame, Soup, Coffee, Cookie, Loader2, Sparkles, Filter } from "lucide-react";
 import { db } from "@/lib/firebase/config";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 
 const tastes = ["Any", "Sweet", "Spicy", "Savory", "Healthy"];
 const meals = ["Any", "Breakfast", "Lunch", "Dinner", "Snack"];
+
 
 export default function Recipes() {
   const { user, loading: authLoading } = useAuth();
@@ -51,7 +52,7 @@ export default function Recipes() {
         try {
           const token = await user?.getIdToken();
           // Clean list
-          const ingredients = pantryItems.map(item => item.name).filter(Boolean).join(",");
+          const ingredients = pantryItems.map(item => (item as any).name).filter(Boolean).join(",");
           
           const queryParams = new URLSearchParams({
             ingredients,
@@ -124,11 +125,27 @@ export default function Recipes() {
 
   if (authLoading || !user) return <div className="min-h-screen flex items-center justify-center font-medium text-gray-500">Authenticating...</div>;
 
+
+  if (loading || !user) return <div className="min-h-screen flex items-center justify-center font-medium text-gray-500">Authenticating...</div>;
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 pb-20">
-      <div className="mb-6">
+      <div className="mb-6 flex justify-between items-center">
         <Link href="/dashboard" className="inline-flex items-center text-sm font-bold text-gray-500 hover:text-[#ff6670] transition-colors bg-white/50 px-4 py-2 rounded-full border border-gray-200 shadow-sm backdrop-blur-md">
            <ArrowLeft size={16} className="mr-2" /> Back to Dashboard
+        </Link>
+        
+        <Link href="/substitutes">
+           <motion.div 
+             whileHover={{ scale: 1.05 }}
+             whileTap={{ scale: 0.95 }}
+             className="relative group cursor-pointer inline-flex items-center"
+           >
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl blur opacity-70 group-hover:opacity-100 transition duration-300"></div>
+              <div className="relative bg-[#0d0d12] text-white px-6 py-3 rounded-xl flex items-center gap-2 font-medium">
+                <Wand2 size={18} className="text-pink-400"/> Need Ingredient Substitutes?
+              </div>
+           </motion.div>
         </Link>
       </div>
 
@@ -143,6 +160,7 @@ export default function Recipes() {
            <h1 className="text-4xl font-black text-bordeaux-800 tracking-tight">Recipe Rescue</h1>
            <p className="text-bordeaux-600 mt-2 text-lg">Strictly using ONLY the <b>{pantryItems.length} items</b> currently in your stock.</p>
         </div>
+
       </div>
       
       {/* 🧭 FILTER UI */}
