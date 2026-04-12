@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Calendar, Package, Hash, Loader2 } from "lucide-react";
+import { X, Plus, Calendar, Package, Hash, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "../ui/Button";
 import { useAuth } from "@/context/AuthContext";
 
@@ -69,80 +69,84 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99]"
+            className="fixed inset-0 bg-bordeaux-950/20 backdrop-blur-md z-[110]"
           />
 
           {/* Modal Container */}
-          <div className="fixed inset-0 flex items-center justify-center p-4 z-[100] pointer-events-none">
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-[120] pointer-events-none">
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden pointer-events-auto border border-gray-100"
+              className="bg-white w-full max-w-md rounded-[48px] shadow-3xl overflow-hidden pointer-events-auto border border-apricot-100"
             >
               {/* Header */}
-              <div className="bg-apricot-50 px-8 py-6 flex justify-between items-center border-b border-apricot-100">
+              <div className="bg-apricot-50 px-10 py-8 flex justify-between items-center border-b border-apricot-100">
                 <div>
-                  <h2 className="text-2xl font-bold text-bordeaux-800">Add New Item</h2>
-                  <p className="text-sm text-bordeaux-500">Manual entry with smart images</p>
+                  <h2 className="text-[32px] font-serif text-bordeaux-800 leading-none mb-2">Add <span className="italic font-normal opacity-40">Item</span></h2>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-bordeaux-300">Manual Inventory Append</p>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-white rounded-full transition-colors text-bordeaux-400"
+                  className="w-11 h-11 rounded-full bg-white border border-apricot-100 flex items-center justify-center text-bordeaux-300 hover:text-bordeaux-800 transition shadow-sm"
                 >
                   <X size={20} />
                 </button>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="p-8 space-y-5">
+              <form onSubmit={handleSubmit} className="p-10 space-y-6">
                 {/* Item Name */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-bordeaux-700 ml-1">Item Name</label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-bordeaux-300 ml-1">Ingredient Name</label>
                   <div className="relative">
-                    <Package className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <Package className="absolute left-6 top-1/2 -translate-y-1/2 text-bordeaux-200" size={18} />
                     <input
                       required
                       type="text"
-                      placeholder="e.g. Fresh Milk, Avocados"
+                      placeholder="Fresh Milk, Avocados..."
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full bg-gray-50 border-gray-200 border-2 rounded-2xl h-12 pl-12 pr-4 focus:border-apricot-400 focus:bg-white outline-none transition-all font-medium text-bordeaux-900"
+                      className="w-full bg-white border border-apricot-100 rounded-2xl h-14 pl-14 pr-6 focus:border-apricot-500 outline-none transition-all font-medium text-bordeaux-800 placeholder:text-bordeaux-100"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-6">
                   {/* Quantity */}
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-bordeaux-700 ml-1">Quantity</label>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-bordeaux-300 ml-1">Quantity</label>
                     <div className="relative">
-                      <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <Hash className="absolute left-6 top-1/2 -translate-y-1/2 text-bordeaux-200" size={18} />
                       <input
                         required
                         type="number"
                         min="1"
+                        step="any"
                         value={formData.quantity}
                         onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                        className="w-full bg-gray-50 border-gray-200 border-2 rounded-2xl h-12 pl-12 pr-4 focus:border-apricot-400 focus:bg-white outline-none transition-all font-medium text-bordeaux-900"
+                        className="w-full bg-white border border-apricot-100 rounded-2xl h-14 pl-14 pr-6 focus:border-apricot-500 outline-none transition-all font-medium text-bordeaux-800"
                       />
                     </div>
                   </div>
 
                   {/* Unit Dropdown */}
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-bordeaux-700 ml-1">Unit</label>
-                    <select
-                      value={formData.unit}
-                      onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                      className="w-full bg-gray-50 border-gray-200 border-2 rounded-2xl h-12 px-4 focus:border-apricot-400 focus:bg-white outline-none transition-all font-medium text-bordeaux-900"
-                    >
-                      {COMMON_UNITS.map((u) => (
-                        <option key={u} value={u}>
-                          {u.charAt(0).toUpperCase() + u.slice(1)}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-bordeaux-300 ml-1">Unit</label>
+                    <div className="relative">
+                      <select
+                        value={formData.unit}
+                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                        className="w-full bg-white border border-apricot-100 rounded-2xl h-14 px-6 appearance-none focus:border-apricot-500 outline-none transition-all font-medium text-bordeaux-800 cursor-pointer"
+                      >
+                        {COMMON_UNITS.map((u) => (
+                          <option key={u} value={u}>
+                            {u.charAt(0).toUpperCase() + u.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-bordeaux-200 pointer-events-none" size={16} />
+                    </div>
                   </div>
                 </div>
 
@@ -151,49 +155,49 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
-                    className="space-y-1.5 overflow-hidden"
+                    className="space-y-2 overflow-hidden"
                   >
-                    <label className="text-sm font-bold text-bordeaux-700 ml-1">Enter Unit Name</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-bordeaux-300 ml-1">Custom Unit Name</label>
                     <input
                       required
                       type="text"
-                      placeholder="e.g. carton, pouch"
+                      placeholder="carton, pouch..."
                       value={formData.customUnit}
                       onChange={(e) => setFormData({ ...formData, customUnit: e.target.value })}
-                      className="w-full bg-gray-50 border-gray-200 border-2 rounded-2xl h-12 px-4 focus:border-apricot-400 focus:bg-white outline-none transition-all font-medium text-bordeaux-900"
+                      className="w-full bg-white border border-apricot-100 rounded-2xl h-14 px-6 focus:border-apricot-500 outline-none transition-all font-medium text-bordeaux-800 placeholder:text-bordeaux-100"
                     />
                   </motion.div>
                 )}
 
                 {/* Expiry Date */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-bordeaux-700 ml-1">Expiry Date (Optional)</label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-bordeaux-300 ml-1">Expiry Date (Optional)</label>
                   <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 text-bordeaux-200" size={18} />
                     <input
                       type="date"
                       value={formData.expiry}
                       onChange={(e) => setFormData({ ...formData, expiry: e.target.value })}
-                      className="w-full bg-gray-50 border-gray-200 border-2 rounded-2xl h-12 pl-12 pr-4 focus:border-apricot-400 focus:bg-white outline-none transition-all font-medium text-bordeaux-900"
+                      className="w-full bg-white border border-apricot-100 rounded-2xl h-14 pl-14 pr-6 focus:border-apricot-500 outline-none transition-all font-medium text-bordeaux-800"
                     />
                   </div>
                 </div>
 
                 {/* Submit Button */}
-                <div className="pt-4">
-                  <Button
+                <div className="pt-6">
+                  <button
                     disabled={loading}
                     type="submit"
-                    className="w-full h-14 rounded-2xl bg-apricot-400 hover:bg-apricot-500 text-white font-bold text-lg shadow-lg shadow-apricot-200/50 transition-all active:scale-[0.98]"
+                    className="w-full h-16 rounded-2xl bg-apricot-500 hover:bg-bordeaux-800 text-white font-black uppercase tracking-[0.2em] text-[12px] shadow-lg hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3"
                   >
                     {loading ? (
                       <Loader2 className="animate-spin" />
                     ) : (
                       <>
-                        <Plus size={20} className="mr-2" /> Add to Pantry
+                        <Plus size={18} /> Append to Pantry
                       </>
                     )}
-                  </Button>
+                  </button>
                 </div>
               </form>
             </motion.div>

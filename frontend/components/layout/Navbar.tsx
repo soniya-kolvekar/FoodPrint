@@ -35,13 +35,13 @@ export const Navbar = () => {
       <Link 
         href={href} 
         className={cn(
-          "text-[14px] transition-all relative pb-1 pt-1 block font-black uppercase tracking-[0.2em]",
-          isActive ? "text-[#ff3341]" : "text-gray-400 hover:text-[#ff3341]"
+          "text-[15px] transition-colors relative pb-1 pt-1 block font-medium",
+          isActive ? "text-[#e98016]" : "text-gray-500 hover:text-[#290a11]"
         )}
       >
         {children}
         {isActive && (
-          <motion.div layoutId="navbar-indicator" className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#ff3341] rounded-full shadow-[0_0_10px_rgba(255,51,65,0.5)]" />
+          <motion.div layoutId="navbar-indicator" className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#e98016] rounded-full" />
         )}
       </Link>
     );
@@ -53,54 +53,46 @@ export const Navbar = () => {
       animate={{ y: 0, opacity: 1 }}
       className={cn(
         "fixed top-0 w-full z-50 transition-all duration-300",
-        scrolled ? "bg-white/80 backdrop-blur-2xl shadow-xl py-4" : "bg-transparent py-8"
+        scrolled ? "bg-[#fffbfa]/95 backdrop-blur-md shadow-sm py-4" : "bg-transparent py-6"
       )}
     >
-      <div className="mx-auto max-w-[1400px] flex items-center justify-between px-10">
+      <div className="mx-auto max-w-[1240px] flex items-center justify-between px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-4 group min-w-[180px]">
-          <div className="bg-white w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden shadow-2xl border border-black/5 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-            <div className="w-6 h-6 bg-gradient-to-tr from-[#ff3341] to-[#ee9944] rounded-sm animate-pulse"></div>
+        <Link href="/" className="flex items-center gap-3 group min-w-[200px]">
+          <div className="bg-white w-11 h-11 rounded-full flex items-center justify-center overflow-hidden shadow-sm border border-black/5 group-hover:scale-105 group-hover:shadow-md transition-all duration-300">
+            <img src="/logo.png" alt="FoodPrint Logo" className="w-[140%] h-[140%] max-w-none object-cover flex-shrink-0" />
           </div>
-          <span className="text-[26px] font-black tracking-tighter italic text-black">
+          <span className="text-[22px] font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#e98016] to-[#cf3053]">
             FoodPrint
           </span>
         </Link>
         
-        {/* Center Links - Spaced out more to avoid congestion */}
-        <div className="hidden lg:flex gap-16 items-center">
+        {/* Center Links */}
+        <div className="hidden md:flex gap-12 items-center">
            <NavLink href="/dashboard">Dashboard</NavLink>
            <NavLink href="/recipes">Recipes</NavLink>
-           <NavLink href="/expiry-heatmap">Automatic Analysis</NavLink>
+           <NavLink href="/expiry-heatmap">Analysis</NavLink>
            <NavLink href="/community">Community</NavLink>
         </div>
 
-        {/* Right Nav Auth Control - Fixed Spacing */}
-        <div className="flex gap-8 items-center min-w-[200px] justify-end">
+        {/* Right Nav Auth Control */}
+        <div className="flex gap-4 items-center min-w-[200px] justify-end">
            {!user ? (
              <>
-               <Link href="/login" className="text-[12px] font-black uppercase tracking-widest text-black/40 hover:text-[#ff3341] transition-colors">Log in</Link>
+               <Link href="/login" className="text-[14px] font-bold text-[#a52742] hover:text-[#ff6670] transition-colors px-2">Log in</Link>
                <Link href="/signup">
-                 <button className="bg-[#ff3341] hover:bg-black text-white rounded-2xl px-8 py-3.5 shadow-2xl font-black uppercase tracking-widest text-[11px] transition-all duration-300">
+                 <Button className="bg-[#e98016] hover:bg-[#cc6f13] text-white rounded-full px-7 py-2.5 shadow-[0_4px_14px_rgba(233,128,22,0.3)] font-bold text-[14px]">
                    Sign up
-                 </button>
+                 </Button>
                </Link>
              </>
            ) : (
-             <div className="flex items-center gap-6">
-                <Link href="/profile" className="group">
-                  <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-gray-100 to-gray-50 flex items-center justify-center border border-black/5 group-hover:border-[#ff3341] transition shadow-sm">
-                        <span className="text-[12px] font-bold">P</span>
-                     </div>
-                     <span className="text-[13px] font-black uppercase tracking-widest text-black/60 group-hover:text-[#ff3341] transition">Profile</span>
-                  </div>
-                </Link>
-                <div className="w-[1px] h-6 bg-black/5"></div>
-                <button onClick={handleSignOut} className="text-[11px] font-black uppercase tracking-widest text-black/30 hover:text-black transition">
-                  Logout
-                </button>
-             </div>
+             <>
+               <Link href="/profile" className="text-[15px] font-bold text-[#a52742] hover:text-[#ff6670] transition-colors px-4">Profile</Link>
+               <Button onClick={handleSignOut} variant="outline" className="rounded-full px-6 py-2 border-[#fbe6d0] text-[#a52742] font-semibold text-[14px] hover:bg-[#fbe6d0]/40 transition-colors">
+                 Sign out
+               </Button>
+             </>
            )}
         </div>
       </div>

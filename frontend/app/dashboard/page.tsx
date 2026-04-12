@@ -162,56 +162,36 @@ export default function Dashboard() {
   };
 
   const getUrgencyColor = (days: number) => {
-    if (days <= 2) return "text-[#FF512F]";
-    if (days <= 5) return "text-[#F09819]";
-    return "text-white/40";
+    if (days <= 0) return "text-[#cf3053]";
+    if (days <= 2) return "text-[#cf3053]";
+    if (days <= 5) return "text-[#e98016]";
+    return "text-bordeaux-400";
   };
 
   if (authLoading || !user) return null;
 
   return (
-    <div className="min-h-screen bg-[#1c1b1f] text-white relative overflow-x-hidden font-sans selection:bg-[#6e56cf]/40">
+    <div className="min-h-screen bg-[#fffbfa] text-[#1d070c] relative overflow-x-hidden font-sans selection:bg-[#f6cca2]/40">
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
         .font-serif { font-family: 'Playfair Display', serif; }
       `}</style>
 
       {/* BACKGROUND ELEMENTS */}
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.05]">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#6e56cf] rounded-full blur-[200px] -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#FF512F] rounded-full blur-[180px] translate-y-1/2 -translate-x-1/2"></div>
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#e98016] rounded-full blur-[200px] -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#cf3053] rounded-full blur-[180px] translate-y-1/2 -translate-x-1/2"></div>
       </div>
-
-      <nav className="fixed top-0 inset-x-0 h-[72px] flex items-center justify-between px-10 z-[100] bg-[#1c1b1f]/10 backdrop-blur-3xl border-b border-white/[0.04]">
-        <div className="flex items-center gap-[48px]">
-           <Link href="/" className="flex items-center gap-2 font-bold text-[22px] tracking-tighter">
-             <div className="w-[20px] h-[20px] rounded-[4px] bg-gradient-to-tr from-[#FF512F] to-[#DD2476]"></div>
-             FoodPrint
-           </Link>
-           <div className="hidden xl:flex items-center gap-[32px] text-[14px] font-bold tracking-widest uppercase text-white/40">
-             Dashboard Core
-           </div>
-        </div>
-        <div className="flex items-center gap-8">
-           <Link href="/substitutes" className="text-[14px] font-bold text-white/60 hover:text-white transition">Substitutes</Link>
-           <button 
-             onClick={() => setIsAddModalOpen(true)}
-             className="bg-white text-black py-2.5 px-7 rounded-full text-[13px] font-semibold hover:bg-neutral-200 transition active:scale-95 shadow-xl"
-           >
-             New Item
-           </button>
-        </div>
-      </nav>
 
       <main className="relative z-10 w-full max-w-[1400px] mx-auto px-10 pt-[140px] pb-32">
          {/* WELCOME SECTION */}
          <div className="flex flex-col lg:flex-row justify-between items-end mb-24 gap-12">
             <div>
                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                  <h1 className="text-[64px] font-serif leading-none tracking-tight mb-8">Pantry <span className="italic font-normal opacity-40">Intelligence</span></h1>
-                  <p className="text-[20px] text-white/40 leading-relaxed font-medium max-w-[600px]">
-                    Hello, <span className="text-white">{user?.displayName || "Culinary Explorer"}</span>. <br />
-                    Your inventory is optimized. {items.filter(item => getDaysRemaining(getSoonestExpiry(item) || "") <= 3).length} items require immediate attention.
+                  <h1 className="text-[64px] font-serif leading-none tracking-tight mb-8 text-bordeaux-800">Pantry <span className="italic font-normal opacity-40">Intelligence</span></h1>
+                  <p className="text-[20px] text-bordeaux-600/60 leading-relaxed font-medium max-w-[600px]">
+                    Hello, <span className="text-bordeaux-800 font-bold">{user?.displayName || "Culinary Explorer"}</span>. <br />
+                    Your inventory is optimized. <span className="text-[#e98016] font-bold">{items.filter(item => getDaysRemaining(getSoonestExpiry(item) || "") <= 3).length} items</span> require immediate attention.
                   </p>
                </motion.div>
             </div>
@@ -221,14 +201,14 @@ export default function Dashboard() {
                <div className="flex gap-6">
                  <Link href="/expiry-heatmap">
                     <div className="relative group cursor-pointer">
-                      <div className="absolute -inset-[1px] rounded-[32px] bg-gradient-to-r from-[#FF512F] to-[#6e56cf] opacity-50 group-hover:opacity-100 blur-[2px] transition duration-700"></div>
-                      <div className="relative bg-[#1c1b1f] rounded-[32px] p-10 border border-white/5 flex items-center gap-10">
+                      <div className="absolute -inset-[1px] rounded-[32px] bg-gradient-to-r from-[#e98016] to-[#cf3053] opacity-20 group-hover:opacity-100 blur-[2px] transition duration-700"></div>
+                      <div className="relative bg-white rounded-[32px] p-10 border border-apricot-100 flex items-center gap-10 shadow-sm transition-all hover:shadow-xl">
                          <div className="flex flex-col">
-                            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF512F] mb-3">Live Analysis</span>
-                            <span className="text-[24px] font-bold mb-2">Expiry Heatmap</span>
-                            <span className="text-[14px] text-white/40">Visual impact visualization</span>
+                            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#e98016] mb-3">Live Analysis</span>
+                            <span className="text-[24px] font-bold mb-2 text-bordeaux-800">Expiry Heatmap</span>
+                            <span className="text-[14px] text-bordeaux-600/40">Visual impact visualization</span>
                          </div>
-                         <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center text-white/80 group-hover:bg-[#FF512F] group-hover:text-white transition duration-500">
+                         <div className="w-16 h-16 rounded-2xl bg-apricot-50 flex items-center justify-center text-apricot-500 group-hover:bg-[#e98016] group-hover:text-white transition duration-500">
                             <ArrowUpRight size={28} />
                          </div>
                       </div>
@@ -244,7 +224,9 @@ export default function Dashboard() {
                {items.map((item, idx) => {
                  const soonest = getSoonestExpiry(item);
                  const days = soonest ? getDaysRemaining(soonest) : 999;
-                 const urgencyColor = getUrgencyColor(days);
+                 // Urgency logic remains but colors adapted for light mode
+                 const urgencyColor = days <= 2 ? "text-[#cf3053]" : days <= 5 ? "text-[#e98016]" : "text-bordeaux-400";
+                 const urgencyBg = days <= 2 ? "bg-blush-50 border-blush-100" : days <= 5 ? "bg-apricot-50 border-apricot-100" : "bg-gray-50 border-gray-100";
                  
                  return (
                    <motion.div 
@@ -252,20 +234,20 @@ export default function Dashboard() {
                      animate={{ opacity: 1, y: 0 }} 
                      transition={{ delay: idx * 0.1 }} 
                      key={item.id}
-                     className="group relative rounded-[40px] bg-[#1c1b1f] border border-white/5 p-10 hover:border-white/10 transition-all duration-700 hover:-translate-y-3 shadow-2xl"
+                     className="group relative rounded-[40px] bg-white border border-apricot-100 p-10 hover:border-apricot-300 transition-all duration-700 hover:-translate-y-3 shadow-[0_20px_50px_rgba(233,128,22,0.05)]"
                    >
                      <div className="flex justify-between items-start mb-10">
-                        <div className="h-16 w-16 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-[#6e56cf] group-hover:bg-[#6e56cf] group-hover:text-white transition duration-500 overflow-hidden">
-                           {item.imageUrl ? <img src={item.imageUrl} className="w-full h-full object-cover opacity-80" /> : <Utensils size={32} />}
+                        <div className="h-16 w-16 rounded-2xl bg-apricot-50 border border-apricot-100 flex items-center justify-center text-apricot-500 group-hover:bg-[#e98016] group-hover:text-white transition duration-500 overflow-hidden">
+                           {item.imageUrl ? <img src={item.imageUrl} className="w-full h-full object-cover opacity-90" /> : <Utensils size={32} />}
                         </div>
                         <div className="flex flex-col items-end gap-2">
-                          <div className={`px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/5 text-[11px] font-bold uppercase tracking-widest ${urgencyColor}`}>
+                          <div className={`px-4 py-1.5 rounded-full border text-[11px] font-bold uppercase tracking-widest ${urgencyColor} ${urgencyBg}`}>
                              {days <= 0 ? "Expired" : `${days} days`}
                           </div>
                           {item.batches && item.batches.length > 1 && (
                             <button 
                               onClick={() => setViewingBatchesItem(item)}
-                              className="text-[10px] font-bold text-[#6e56cf] flex items-center gap-1 hover:text-white transition"
+                              className="text-[10px] font-bold text-apricot-500 flex items-center gap-1 hover:text-bordeaux-800 transition"
                             >
                               <Info size={10} /> {item.batches.length} Batches
                             </button>
@@ -273,8 +255,8 @@ export default function Dashboard() {
                         </div>
                      </div>
 
-                     <h3 className="text-[28px] font-bold tracking-tight mb-3 transition group-hover:text-[#6e56cf] truncate capitalize">{item.name}</h3>
-                     <p className="text-[16px] text-white/30 font-medium mb-10">{item.quantity} {item.unit}</p>
+                     <h3 className="text-[28px] font-bold tracking-tight mb-3 transition group-hover:text-[#e98016] truncate capitalize text-bordeaux-800">{item.name}</h3>
+                     <p className="text-[16px] text-bordeaux-600/40 font-medium mb-10">{item.quantity} {item.unit}</p>
 
                      <div className="flex flex-col gap-4">
                         <AnimatePresence mode="wait">
@@ -284,7 +266,7 @@ export default function Dashboard() {
                               initial={{ scale: 0.9, opacity: 0 }} 
                               animate={{ scale: 1, opacity: 1 }}
                               exit={{ scale: 0.9, opacity: 0 }}
-                              className="bg-white/5 p-4 rounded-2xl border border-white/10 flex flex-col gap-4"
+                              className="bg-apricot-50 p-4 rounded-2xl border border-apricot-100 flex flex-col gap-4"
                             >
                                <div className="flex gap-2">
                                   <input 
@@ -294,11 +276,11 @@ export default function Dashboard() {
                                     placeholder="Amount..."
                                     value={deductValue}
                                     onChange={(e) => setDeductValue(e.target.value)}
-                                    className="flex-1 bg-white/5 border border-white/10 text-sm px-4 rounded-xl outline-none focus:border-[#6e56cf] transition-colors font-bold text-white"
+                                    className="flex-1 bg-white border border-apricot-100 text-sm px-4 rounded-xl outline-none focus:border-[#e98016] transition-colors font-bold text-bordeaux-800"
                                   />
                                   <div className="flex gap-2">
-                                    <button onClick={() => handleAdjust(item.id)} className="p-3 bg-green-500/20 hover:bg-green-500 text-white rounded-xl transition"><Check size={18} /></button>
-                                    <button onClick={() => setAdjustingId(null)} className="p-3 bg-white/5 text-white/40 hover:bg-white/10 rounded-xl transition"><X size={18} /></button>
+                                    <button onClick={() => handleAdjust(item.id)} className="p-3 bg-green-500/10 hover:bg-green-500 text-green-600 hover:text-white rounded-xl transition border border-green-500/20"><Check size={18} /></button>
+                                    <button onClick={() => setAdjustingId(null)} className="p-3 bg-white text-bordeaux-400 hover:bg-white/10 rounded-xl transition border border-apricot-100"><X size={18} /></button>
                                   </div>
                                </div>
                             </motion.div>
@@ -310,16 +292,16 @@ export default function Dashboard() {
                               exit={{ opacity: 0 }}
                               className="flex gap-4"
                             >
-                              <button onClick={() => handleAction(item.id, "use")} className="flex-1 py-4 px-2 rounded-2xl bg-white/[0.04] border border-white/5 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition flex items-center justify-center gap-3">
+                              <button onClick={() => handleAction(item.id, "use")} className="flex-1 py-4 px-2 rounded-2xl bg-apricot-50 border border-apricot-100 text-[12px] font-black uppercase tracking-widest text-[#e98016] hover:bg-[#e98016] hover:text-white transition flex items-center justify-center gap-3">
                                  <Minus size={14} /> Use
                               </button>
-                              <button onClick={() => handleAction(item.id, "half")} className="flex-1 py-4 px-2 rounded-2xl bg-white/[0.04] border border-white/5 text-[12px] font-black uppercase tracking-widest hover:bg-white/10 transition">Half</button>
+                              <button onClick={() => handleAction(item.id, "half")} className="flex-1 py-4 px-2 rounded-2xl bg-apricot-50 border border-apricot-100 text-[12px] font-black uppercase tracking-widest text-[#e98016] hover:bg-[#e98016] hover:text-white transition">Half</button>
                               
-                              <button onClick={() => setAdjustingId(item.id)} className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 text-white/40 flex items-center justify-center hover:bg-white/10 hover:text-white transition">
+                              <button onClick={() => setAdjustingId(item.id)} className="w-14 h-14 rounded-2xl bg-white border border-apricot-100 text-bordeaux-300 flex items-center justify-center hover:bg-apricot-50 hover:text-apricot-500 transition shadow-sm">
                                  <Edit2 size={18} />
                               </button>
                               
-                              <button onClick={() => deleteItem(item.id)} className="w-14 h-14 rounded-2xl bg-[#FF512F]/10 border border-[#FF512F]/20 text-[#FF512F] flex items-center justify-center hover:bg-[#FF512F] hover:text-white transition">
+                              <button onClick={() => deleteItem(item.id)} className="w-14 h-14 rounded-2xl bg-blush-50 border border-blush-100 text-[#cf3053] flex items-center justify-center hover:bg-[#cf3053] hover:text-white transition">
                                  <Trash size={18} />
                               </button>
                             </motion.div>
@@ -335,22 +317,22 @@ export default function Dashboard() {
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} 
               onClick={() => setIsAddModalOpen(true)}
-              className="rounded-[40px] border-2 border-dashed border-white/5 flex flex-col items-center justify-center p-12 hover:border-[#6e56cf]/40 transition duration-500 cursor-pointer group"
+              className="rounded-[40px] border-2 border-dashed border-apricot-100 flex flex-col items-center justify-center p-12 hover:border-[#e98016]/40 transition duration-500 cursor-pointer group bg-apricot-50/20"
             >
-               <div className="w-16 h-16 rounded-full bg-white/[0.03] flex items-center justify-center text-white/20 group-hover:bg-[#6e56cf]/20 group-hover:text-[#6e56cf] transition duration-500 mb-6">
+               <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-apricot-200 group-hover:bg-[#e98016] group-hover:text-white transition duration-500 mb-6 shadow-sm">
                   <Plus size={32} />
                </div>
-               <span className="text-[14px] font-bold uppercase tracking-widest text-white/20 group-hover:text-white/40 transition">Append Inventory</span>
+               <span className="text-[14px] font-bold uppercase tracking-widest text-apricot-300 group-hover:text-apricot-500 transition">Append Inventory</span>
             </motion.div>
          </div>
       </main>
 
-      <footer className="w-full bg-[#1c1b1f] border-t border-white/5 py-16 px-12 relative z-30 opacity-40">
-         <div className="max-w-[1400px] mx-auto flex justify-between items-center text-[12px] font-bold uppercase tracking-widest text-white/40">
+      <footer className="w-full bg-white border-t border-apricot-100 py-16 px-12 relative z-30 opacity-60">
+         <div className="max-w-[1400px] mx-auto flex justify-between items-center text-[12px] font-bold uppercase tracking-widest text-bordeaux-300">
             <span>© 2026 FoodPrint Systems</span>
             <div className="flex gap-12">
-               <span className="hover:text-white cursor-pointer transition">Terminal</span>
-               <span className="hover:text-white cursor-pointer transition">Neural Link</span>
+               <span className="hover:text-apricot-500 cursor-pointer transition">Terminal</span>
+               <span className="hover:text-apricot-500 cursor-pointer transition">Neural Link</span>
             </div>
          </div>
       </footer>

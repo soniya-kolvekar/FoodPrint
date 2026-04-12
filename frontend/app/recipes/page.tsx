@@ -137,13 +137,16 @@ export default function Recipes() {
         
         <Link href="/substitutes">
            <motion.div 
-             whileHover={{ scale: 1.05 }}
-             whileTap={{ scale: 0.95 }}
+             whileHover={{ scale: 1.02 }}
+             whileTap={{ scale: 0.98 }}
              className="relative group cursor-pointer inline-flex items-center"
            >
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl blur opacity-70 group-hover:opacity-100 transition duration-300"></div>
-              <div className="relative bg-[#0d0d12] text-white px-6 py-3 rounded-xl flex items-center gap-2 font-medium">
-                <Wand2 size={18} className="text-pink-400"/> Need Ingredient Substitutes?
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#e98016] to-[#cf3053] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
+              <div className="relative bg-white border border-[#fbe6d0] text-[#a52742] px-6 py-3 rounded-2xl flex items-center gap-3 font-bold shadow-sm group-hover:shadow-md transition-all">
+                <div className="w-8 h-8 rounded-lg bg-[#fffbfa] flex items-center justify-center border border-[#fbe6d0]">
+                  <Wand2 size={16} className="text-[#e98016]"/>
+                </div>
+                <span className="text-[14px]">Missing ingredients? Find Substitutes</span>
               </div>
            </motion.div>
         </Link>
