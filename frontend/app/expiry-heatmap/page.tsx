@@ -119,7 +119,7 @@ export default function ExpiryHeatmap() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0e0e11] text-white overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[#fffbfa] text-[#1d070c] overflow-x-hidden font-sans">
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
         .font-serif { font-family: 'Playfair Display', serif; }
@@ -128,7 +128,7 @@ export default function ExpiryHeatmap() {
       {/* SUCCESS TOAST */}
       <AnimatePresence>
         {success && (
-          <motion.div initial={{ y: -100, opacity: 0 }} animate={{ y: 20, opacity: 1 }} exit={{ y: -100, opacity: 0 }} className="fixed top-10 inset-x-0 mx-auto z-[200] max-w-sm px-6 py-4 rounded-2xl bg-[#ff3341] text-white flex items-center gap-4 shadow-3xl font-bold uppercase tracking-widest text-[12px]">
+          <motion.div initial={{ y: -100, opacity: 0 }} animate={{ y: 20, opacity: 1 }} exit={{ y: -100, opacity: 0 }} className="fixed top-10 inset-x-0 mx-auto z-[200] max-w-sm px-6 py-4 rounded-2xl bg-apricot-500 text-white flex items-center gap-4 shadow-3xl font-bold uppercase tracking-widest text-[12px]">
             <CheckCircle2 size={24} />
             Inventory Updated Successfully
           </motion.div>
@@ -139,26 +139,26 @@ export default function ExpiryHeatmap() {
       <AnimatePresence>
         {showAddModal && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-6">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/80 backdrop-blur-3xl" onClick={() => setShowAddModal(false)} />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-bordeaux-950/20 backdrop-blur-md" onClick={() => setShowAddModal(false)} />
             <motion.div
               initial={{ scale: 0.9, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              className="relative w-full max-w-md bg-[#1c1b1f] border border-white/10 rounded-[48px] overflow-hidden shadow-3xl"
+              className="relative w-full max-w-md bg-white border border-apricot-100 rounded-[48px] overflow-hidden shadow-3xl"
             >
-              <div className="p-10">
+              <div className="p-10 text-bordeaux-800">
                 <h2 className="text-[32px] font-serif mb-8">Identify <span className="italic opacity-40">Ingredient</span></h2>
 
                 <div className="space-y-6">
-                  <div className="relative h-48 rounded-3xl overflow-hidden border border-white/5 mb-8 bg-black/20">
+                  <div className="relative h-48 rounded-3xl overflow-hidden border border-apricot-100 mb-8 bg-apricot-50/30">
                     <img src={selectedFileUrl!} className="w-full h-full object-contain" />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/30">Ingredient Name</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-bordeaux-300">Ingredient Name</label>
                     <input
                       autoFocus
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-[#ff3341] transition"
+                      className="w-full bg-white border border-apricot-100 rounded-2xl px-6 py-4 outline-none focus:border-apricot-500 transition text-bordeaux-800"
                       placeholder="What is this?"
                       value={newItemData.name}
                       onChange={(e) => setNewItemData({ ...newItemData, name: e.target.value })}
@@ -167,18 +167,18 @@ export default function ExpiryHeatmap() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-white/30">Quantity</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-bordeaux-300">Quantity</label>
                       <input
                         type="number"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none"
+                        className="w-full bg-white border border-apricot-100 rounded-2xl px-6 py-4 outline-none text-bordeaux-800"
                         value={newItemData.quantity}
                         onChange={(e) => setNewItemData({ ...newItemData, quantity: Number(e.target.value) })}
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-white/30">Unit</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-bordeaux-300">Unit</label>
                       <input
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none"
+                        className="w-full bg-white border border-apricot-100 rounded-2xl px-6 py-4 outline-none text-bordeaux-800"
                         value={newItemData.unit}
                         onChange={(e) => setNewItemData({ ...newItemData, unit: e.target.value })}
                       />
@@ -186,10 +186,10 @@ export default function ExpiryHeatmap() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/30">Expires In (Days)</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-bordeaux-300">Expires In (Days)</label>
                     <input
                       type="number"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none"
+                      className="w-full bg-white border border-apricot-100 rounded-2xl px-6 py-4 outline-none text-bordeaux-800"
                       value={newItemData.daysToExpiry}
                       onChange={(e) => setNewItemData({ ...newItemData, daysToExpiry: Number(e.target.value) })}
                     />
@@ -197,10 +197,10 @@ export default function ExpiryHeatmap() {
                 </div>
 
                 <div className="mt-10 flex gap-4">
-                  <button onClick={saveDynamicItem} className="flex-1 bg-[#ff3341] py-5 rounded-2xl font-black uppercase tracking-widest text-[12px] hover:bg-white hover:text-black transition flex items-center justify-center gap-3">
+                  <button onClick={saveDynamicItem} className="flex-1 bg-apricot-500 py-5 rounded-2xl font-black uppercase tracking-widest text-[12px] text-white hover:bg-bordeaux-800 transition flex items-center justify-center gap-3">
                     <Save size={16} /> Save Item
                   </button>
-                  <button onClick={() => setShowAddModal(false)} className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-white/20 hover:text-white transition">
+                  <button onClick={() => setShowAddModal(false)} className="w-16 h-16 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center text-bordeaux-300 hover:text-bordeaux-800 transition">
                     <X size={24} />
                   </button>
                 </div>
@@ -210,22 +210,22 @@ export default function ExpiryHeatmap() {
         )}
       </AnimatePresence>
 
-      {/* FLOATING ACTION NAVBAR */}
+      {/* BACK BUTTON */}
       <div className="fixed top-10 left-10 z-[110]">
-        <Link href="/dashboard" className="w-14 h-14 rounded-full bg-white/5 backdrop-blur-3xl border border-white/10 flex items-center justify-center hover:bg-white/10 transition shadow-2xl group">
-          <ArrowLeft className="group-hover:-translate-x-1 transition" />
+        <Link href="/dashboard" className="w-14 h-14 rounded-full bg-white backdrop-blur-3xl border border-apricot-100 flex items-center justify-center hover:bg-apricot-50 transition shadow-sm group">
+          <ArrowLeft className="group-hover:-translate-x-1 transition text-bordeaux-800" />
         </Link>
       </div>
 
       <div className="fixed top-10 right-10 z-[110] flex gap-4">
-        <div className="hidden md:flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 backdrop-blur-3xl border border-white/10 text-[12px] font-bold uppercase tracking-widest text-white/40 italic">
+        <div className="hidden md:flex items-center gap-3 px-6 py-3 rounded-full bg-white backdrop-blur-3xl border border-apricot-100 text-[12px] font-bold uppercase tracking-widest text-bordeaux-300 italic">
           <ThermometerSnowflake size={14} className="text-[#ee9944]" />
-          Atmospheric Heat: <span className="text-white ml-2">Normalized</span>
+          Atmospheric Heat: <span className="text-bordeaux-800 ml-2">Normalized</span>
         </div>
       </div>
 
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden text-[#ff3341]">
-        <svg className="w-full h-full opacity-[0.15]" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden text-[#e98016]">
+        <svg className="w-full h-full opacity-[0.05]" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
           <motion.circle cx="800" cy="200" r="400" fill="currentColor" animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }} transition={{ duration: 15, repeat: Infinity }} />
           <motion.circle cx="100" cy="800" r="300" fill="#ee9944" animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }} transition={{ duration: 20, repeat: Infinity }} />
         </svg>
@@ -235,11 +235,11 @@ export default function ExpiryHeatmap() {
         <div className="max-w-[700px] mb-24">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-1 bg-gradient-to-r from-[#ff3341] to-transparent"></div>
-              <span className="text-[12px] font-bold uppercase tracking-[0.4em] text-white/30">Systemic Analysis</span>
+              <div className="w-12 h-1 bg-gradient-to-r from-apricot-500 to-transparent"></div>
+              <span className="text-[12px] font-bold uppercase tracking-[0.4em] text-bordeaux-300">Systemic Analysis</span>
             </div>
-            <h1 className="text-[72px] font-serif leading-none tracking-tight mb-10">Expiry <span className="italic font-normal text-[#ff3341]">Heatmap</span></h1>
-            <p className="text-[22px] text-white/50 leading-relaxed font-serif italic max-w-lg">
+            <h1 className="text-[72px] font-serif leading-none tracking-tight mb-10 text-bordeaux-800">Expiry <span className="italic font-normal text-apricot-500">Heatmap</span></h1>
+            <p className="text-[22px] text-bordeaux-600/50 leading-relaxed font-serif italic max-w-lg">
               Prioritizing your culinary inventory through thermodynamic urgency data.
             </p>
           </motion.div>
@@ -247,13 +247,13 @@ export default function ExpiryHeatmap() {
 
         <div className="flex flex-col xl:flex-row gap-8 mb-20 items-stretch">
           <div className="relative flex-1 group">
-            <div className="absolute inset-0 bg-white/[0.03] rounded-[24px] border border-white/10 backdrop-blur-xl group-focus-within:border-[#ff3341]/40 transition-all duration-500"></div>
+            <div className="absolute inset-0 bg-white rounded-[24px] border border-apricot-100 shadow-sm group-focus-within:border-apricot-500 transition-all duration-500"></div>
             <div className="relative flex items-center px-8 py-7">
-              <Search className="text-white/20 mr-4" size={24} />
+              <Search className="text-bordeaux-200 mr-4" size={24} />
               <input
                 type="text"
                 placeholder="Search ingredient database..."
-                className="bg-transparent text-white outline-none w-full text-[18px] font-medium placeholder:text-white/10"
+                className="bg-transparent text-bordeaux-800 outline-none w-full text-[18px] font-medium placeholder:text-bordeaux-200"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -265,18 +265,18 @@ export default function ExpiryHeatmap() {
             <button
               onClick={handleGalleryClick}
               disabled={uploading}
-              className="px-10 rounded-[24px] bg-white/[0.04] border border-white/10 hover:bg-white/10 transition flex items-center gap-4 text-[14px] font-black uppercase tracking-widest group shadow-2xl disabled:opacity-50 min-w-[240px]"
+              className="px-10 rounded-[24px] bg-white border border-apricot-100 hover:bg-apricot-50 transition flex items-center gap-4 text-[14px] font-black uppercase tracking-widest group shadow-sm disabled:opacity-50 min-w-[240px] text-bordeaux-800"
             >
               {uploading ? (
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-2 border-apricot-200 border-t-apricot-500 rounded-full animate-spin"></div>
               ) : (
-                <Upload size={18} className="text-white group-hover:scale-110 transition" />
+                <Upload size={18} className="text-apricot-500 group-hover:scale-110 transition" />
               )}
               {uploading ? "Analyzing Signals..." : "Stock Upload"}
             </button>
             <button
               onClick={handleSuggestRecipe}
-              className="px-10 rounded-[24px] bg-[#ff3341] hover:bg-[#ff4d59] transition flex items-center gap-4 text-[14px] font-black uppercase tracking-widest shadow-[0_0_40px_rgba(255,51,65,0.3)] transition-all duration-500 hover:shadow-[0_0_60px_rgba(255,51,65,0.5)]"
+              className="px-10 rounded-[24px] bg-apricot-500 hover:bg-bordeaux-800 transition flex items-center gap-4 text-[14px] font-black uppercase tracking-widest text-white shadow-xl transition-all duration-500"
             >
               <Sparkles size={18} />
               Suggest Recipe
@@ -287,8 +287,8 @@ export default function ExpiryHeatmap() {
         <div className="flex gap-8 mb-16 px-2 overflow-x-auto pb-4 scrollbar-hide">
           {Object.entries(PALETTE).map(([key, color]) => (
             <div key={key} className="flex items-center gap-3 whitespace-nowrap">
-              <div className="w-3 h-3 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.2)]" style={{ backgroundColor: color }}></div>
-              <span className="text-[11px] font-bold uppercase tracking-widest text-white/40">{key} Zone</span>
+              <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }}></div>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-bordeaux-300">{key} Zone</span>
             </div>
           ))}
         </div>
@@ -306,13 +306,13 @@ export default function ExpiryHeatmap() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05, duration: 0.6 }}
                   key={item.id}
-                  className="relative group rounded-[48px] overflow-hidden bg-[#151518] border border-white/5 hover:border-white/10 transition-all duration-700 hover:-translate-y-4 shadow-3xl flex flex-col h-[480px]"
+                  className="relative group rounded-[48px] overflow-hidden bg-white border border-apricot-100 hover:border-apricot-300 transition-all duration-700 hover:-translate-y-4 shadow-sm hover:shadow-2xl flex flex-col h-[480px]"
                 >
-                  <div className="relative h-64 overflow-hidden bg-black/10">
-                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover transition duration-[2s] scale-100 group-hover:scale-110" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#151518] via-[#151518]/10 to-transparent"></div>
+                  <div className="relative h-64 overflow-hidden bg-apricot-50/20">
+                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover transition duration-[2s] scale-100 group-hover:scale-110 opacity-90" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
 
-                    <div className="absolute top-8 left-8 flex items-center gap-3 px-5 py-2 rounded-full backdrop-blur-2xl border bg-black/40 border-white/10" style={{ boxShadow: `0 0 20px ${glow}` }}>
+                    <div className="absolute top-8 left-8 flex items-center gap-3 px-5 py-2 rounded-full backdrop-blur-md border bg-white/80 border-apricot-100" style={{ boxShadow: `0 0 20px ${glow}` }}>
                       <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: color }}></div>
                       <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color }}>{label}</span>
                     </div>
@@ -321,22 +321,22 @@ export default function ExpiryHeatmap() {
                   <div className="p-12 flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start mb-4">
-                        <h3 className="text-[32px] font-bold tracking-tight group-hover:text-[#ff3341] transition-colors line-clamp-1">{item.name}</h3>
-                        <div className="text-right flex-shrink-0">
+                        <h3 className="text-[32px] font-bold tracking-tight text-bordeaux-800 group-hover:text-apricot-500 transition-colors line-clamp-1">{item.name}</h3>
+                        <div className="text-right flex-shrink-0 text-bordeaux-800">
                           <div className="text-[18px] font-bold">{item.quantity}</div>
-                          <div className="text-[10px] uppercase font-black tracking-widest text-white/20">{item.unit}</div>
+                          <div className="text-[10px] uppercase font-black tracking-widest text-bordeaux-200">{item.unit}</div>
                         </div>
                       </div>
-                      <p className="text-white/30 text-[14px] font-medium leading-relaxed italic font-serif">Stored in Main Containment Unit</p>
+                      <p className="text-bordeaux-300 text-[14px] font-medium leading-relaxed italic font-serif">Stored in Main Containment Unit</p>
                     </div>
 
-                    <div className="pt-8 border-t border-white/[0.04] flex items-center justify-between">
+                    <div className="pt-8 border-t border-apricot-50 flex items-center justify-between">
                       <div className="flex flex-col">
-                        <span className="text-[10px] uppercase font-black tracking-widest text-white/10 mb-1">Time Remaining</span>
+                        <span className="text-[10px] uppercase font-black tracking-widest text-bordeaux-200 mb-1">Time Remaining</span>
                         <span className="text-[18px] font-bold" style={{ color }}>{days <= 0 ? "Expired" : `${days} Earth Days`}</span>
                       </div>
-                      <button className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center hover:bg-white/10 transition group/btn shadow-xl">
-                        <ChevronRight size={24} className="group-hover/btn:translate-x-1 transition text-white/20 group-hover:text-white" />
+                      <button className="w-14 h-14 rounded-2xl bg-apricot-50 border border-apricot-100 flex items-center justify-center hover:bg-apricot-500 transition group/btn shadow-sm">
+                        <ChevronRight size={24} className="group-hover/btn:translate-x-1 transition text-apricot-300 group-hover:text-white" />
                       </button>
                     </div>
                   </div>
@@ -348,24 +348,24 @@ export default function ExpiryHeatmap() {
 
         {!loading && filteredItems.length === 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-60 flex flex-col items-center">
-            <div className="w-24 h-24 rounded-full border border-dashed border-white/10 flex items-center justify-center opacity-20 mb-10">
-              <Filter size={40} />
+            <div className="w-24 h-24 rounded-full border border-dashed border-apricot-100 flex items-center justify-center opacity-20 mb-10">
+              <Filter size={40} className="text-apricot-300" />
             </div>
-            <p className="text-[24px] font-serif italic text-white/20 text-center">No matching biological signals detected.</p>
+            <p className="text-[24px] font-serif italic text-bordeaux-300 text-center">No matching biological signals detected.</p>
           </motion.div>
         )}
       </main>
 
-      <footer className="w-full border-t border-white/5 py-24 px-12 relative z-30 overflow-hidden">
+      <footer className="w-full border-t border-apricot-100 py-24 px-12 relative z-30 overflow-hidden bg-white/50">
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row justify-between items-center gap-12 relative z-10">
-          <div className="flex items-center gap-3 font-bold text-[36px] tracking-tighter italic">
-            <div className="w-[24px] h-[24px] rounded-md bg-[#ff3341]"></div>
+          <div className="flex items-center gap-3 font-bold text-[36px] tracking-tighter italic text-bordeaux-800">
+            <div className="w-[24px] h-[24px] rounded-md bg-apricot-500"></div>
             FoodPrint
           </div>
-          <div className="flex gap-20 text-[11px] font-black uppercase tracking-[0.4em] text-white/20">
-            <span className="hover:text-white cursor-pointer transition">Containment Protocols</span>
-            <span className="hover:text-white cursor-pointer transition">Thermal Standards</span>
-            <span className="hover:text-white cursor-pointer transition">Privacy Neural</span>
+          <div className="flex gap-20 text-[11px] font-black uppercase tracking-[0.4em] text-bordeaux-300">
+            <span className="hover:text-apricot-500 cursor-pointer transition">Containment Protocols</span>
+            <span className="hover:text-apricot-500 cursor-pointer transition">Thermal Standards</span>
+            <span className="hover:text-apricot-500 cursor-pointer transition">Privacy Neural</span>
           </div>
         </div>
       </footer>
