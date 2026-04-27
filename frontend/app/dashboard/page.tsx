@@ -37,7 +37,6 @@ export default function Dashboard() {
 
 
 
-
   const normalize = (str: string) => {
     if (!str) return "";
     return str.toLowerCase().trim().replace(/s$/, "");
@@ -216,6 +215,14 @@ export default function Dashboard() {
                  </Link>
                </div>
             </motion.div>
+         </div>
+
+         <div className="flex justify-between items-end mb-8 mt-10">
+            <div>
+               <h2 className="text-[32px] font-serif font-bold text-bordeaux-800 flex items-center gap-3">
+                  My <span className="italic font-normal opacity-40">Inventory</span>
+               </h2>
+            </div>
          </div>
 
          {/* PANTRY GRID */}
