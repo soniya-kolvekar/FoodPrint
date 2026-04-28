@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CopyPlus, ArrowLeft, Loader2, Navigation, Map as MapIcon, Share2, Layers, Utensils, Phone, Tag } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import GooeyNav from "@/components/ui/GooeyNav";
+import { MagicCard } from "@/components/ui/MagicCard";
 import { db } from "@/lib/firebase/config";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import ShareFoodModal from "@/components/community/ShareFoodModal";
@@ -96,54 +98,64 @@ export default function Community() {
         {/* Floating Header */}
         <div className="absolute top-8 left-8 right-8 z-[50] flex justify-between items-start pointer-events-none">
         <div>
-          <Link href="/" className="pointer-events-auto inline-flex items-center text-[12px] font-black uppercase tracking-widest text-bordeaux-400 hover:text-apricot-500 transition-colors bg-white/70 backdrop-blur-md px-5 py-3 rounded-2xl shadow-sm border border-apricot-100 mb-4 group">
-             <ArrowLeft size={16} className="mr-3 group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
-          </Link>
-          <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[32px] border border-apricot-100 shadow-xl pointer-events-auto max-w-sm">
-             <h1 className="text-4xl font-serif font-bold text-bordeaux-800 mb-2 leading-none flex items-center gap-3">
-               Local <MapIcon size={28} className="text-apricot-500" />
-             </h1>
-             <p className="text-[13px] font-medium text-bordeaux-400 mb-6">Discover {filteredItems.length} active sharing spots in your neighborhood to prevent food waste.</p>
-             
-             {/* Filters */}
-             <div className="flex flex-col gap-2">
-               <span className="text-[10px] font-black uppercase tracking-widest text-apricot-600 ml-1">Search Radius</span>
-               <div className="flex bg-apricot-50/50 p-1 rounded-xl border border-apricot-100">
-                 {[2, 5, 10, 50].map((r) => (
-                   <button
-                     key={r}
-                     onClick={() => setRadiusKm(r)}
-                     className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${radiusKm === r ? "bg-white text-apricot-600 shadow-sm" : "text-bordeaux-300 hover:text-bordeaux-500"}`}
-                   >
-                     {r}km
-                   </button>
-                 ))}
-               </div>
-             </div>
+          <div className="pointer-events-auto mb-4 inline-block bg-white/60 backdrop-blur-md rounded-full border border-[#450920]/10 shadow-sm">
+            <GooeyNav items={[{ label: "← Dashboard", href: "/dashboard" }]} />
           </div>
+          <MagicCard 
+            className="rounded-[32px] border border-apricot-100 shadow-xl pointer-events-auto max-w-sm"
+            gradientFrom="#da627d"
+            gradientTo="#450920"
+          >
+            <div className="p-8 flex flex-col">
+              <h1 className="text-4xl font-serif font-bold text-bordeaux-800 mb-2 leading-none flex items-center gap-3">
+                Local <MapIcon size={28} className="text-apricot-500" />
+              </h1>
+              <p className="text-[13px] font-medium text-bordeaux-400 mb-6">Discover {filteredItems.length} active sharing spots in your neighborhood to prevent food waste.</p>
+              
+              {/* Filters */}
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-apricot-600 ml-1">Search Radius</span>
+                <div className="flex bg-apricot-50/50 p-1 rounded-xl border border-apricot-100">
+                  {[2, 5, 10, 50].map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setRadiusKm(r)}
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${radiusKm === r ? "bg-white text-apricot-600 shadow-sm" : "text-bordeaux-300 hover:text-bordeaux-500"}`}
+                    >
+                      {r}km
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </MagicCard>
         </div>
 
         {/* Global Stats / Share Button */}
         <div className="pointer-events-auto flex flex-col items-end gap-3">
            <button 
              onClick={() => setIsModalOpen(true)}
-             className="bg-white border-2 border-bordeaux-800 text-bordeaux-800 hover:bg-bordeaux-800 hover:text-white px-8 py-5 rounded-[24px] font-black uppercase tracking-widest text-xs flex items-center gap-3 transition-colors shadow-lg group"
+             className="bg-[#450920] text-white hover:bg-[#a53860] px-8 py-5 rounded-[24px] font-black uppercase tracking-widest text-xs flex items-center gap-3 transition-all duration-300 shadow-lg group hover:scale-105 border-none"
            >
              <Share2 size={18} className="group-hover:rotate-12 transition-transform" />
              Share Excess Food
            </button>
            
-           <div className="bg-gradient-to-br from-apricot-500 to-[#cf3053] p-[2px] rounded-[24px] shadow-xl">
-             <div className="bg-white/95 backdrop-blur-md rounded-[22px] px-8 py-6 flex items-center gap-6">
-               <div className="flex flex-col items-end">
-                 <span className="text-3xl font-black text-bordeaux-800 leading-none">{filteredItems.length}</span>
-                 <span className="text-[10px] font-black uppercase tracking-widest text-[#e98016]">Nearby Items</span>
-               </div>
-               <div className="w-12 h-12 bg-blush-50 rounded-2xl flex flex-col items-center justify-center text-bordeaux-300">
-                 <Layers size={20} />
-               </div>
-             </div>
-           </div>
+           <MagicCard 
+              className="rounded-[24px] shadow-xl"
+              gradientFrom="#da627d"
+              gradientTo="#450920"
+            >
+              <div className="px-8 py-6 flex items-center gap-6">
+                <div className="flex flex-col items-end">
+                  <span className="text-3xl font-black text-bordeaux-800 leading-none">{filteredItems.length}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#e98016]">Nearby Items</span>
+                </div>
+                <div className="w-12 h-12 bg-blush-50 rounded-2xl flex flex-col items-center justify-center text-bordeaux-300">
+                  <Layers size={20} />
+                </div>
+              </div>
+            </MagicCard>
          </div>
        </div>
 
@@ -159,8 +171,8 @@ export default function Community() {
       {/* RIGHT SIDEBAR: COMMUNITY CARDS */}
       <div className="w-[450px] shrink-0 bg-[#fffbfa] border-l border-apricot-100 flex flex-col z-[40] shadow-[-10px_0_30px_rgba(233,128,22,0.02)] h-full overflow-hidden">
         <div className="p-8 border-b border-apricot-100 bg-white shadow-sm shrink-0">
-          <h2 className="text-3xl font-serif font-bold text-bordeaux-800 mb-2 flex items-center gap-3">
-             Community <span className="italic font-normal opacity-40">Share</span>
+          <h2 className="text-3xl font-black text-[#450920] mb-2 flex items-center gap-2 tracking-tight font-sans">
+             Community <span className="italic font-light text-[#a53860]">Share</span>
           </h2>
           <p className="text-[13px] font-medium text-bordeaux-400">View contact details and claim shared items from your neighbors.</p>
         </div>
@@ -172,37 +184,44 @@ export default function Community() {
             </div>
           ) : (
             filteredItems.map((cItem, i) => (
-              <div key={cItem.id || i} className="bg-white rounded-[32px] p-6 border border-apricot-100 shadow-[0_10px_40px_rgba(233,128,22,0.04)] flex flex-col gap-4 group hover:border-apricot-300 transition-all duration-500">
-                <div className="h-40 w-full rounded-2xl overflow-hidden bg-apricot-50 flex items-center justify-center border border-apricot-100/50">
-                  {cItem.imageUrl ? (
-                    <img src={cItem.imageUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={cItem.title} />
-                  ) : (
-                    <Utensils className="text-apricot-300" size={36} />
-                  )}
-                </div>
-                <div>
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-bordeaux-800 text-xl truncate pr-2">{cItem.title}</h3>
-                    <div className="bg-blush-50 text-[#cf3053] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shrink-0 flex items-center gap-1 border border-blush-100">
-                      <Tag size={10} /> {cItem.price || "Free"}
-                    </div>
-                  </div>
-                  <p className="text-sm font-medium text-gray-500 mb-5 line-clamp-2">{cItem.description}</p>
-                  
-                  <div className="flex flex-col gap-2 p-4 bg-apricot-50/50 rounded-2xl border border-apricot-100/50">
-                    <div className="flex items-center justify-between text-xs font-bold text-bordeaux-800">
-                      <span className="text-[#e98016] uppercase tracking-widest text-[10px]">Donor</span>
-                      <span>{cItem.userName || "Neighbor"}</span>
-                    </div>
-                    {cItem.contactInfo && (
-                      <div className="flex items-center justify-between text-xs font-bold text-bordeaux-800 border-t border-apricot-100/50 pt-2 border-dashed">
-                        <span className="text-[#e98016] uppercase tracking-widest text-[10px] flex items-center gap-1"><Phone size={10} /> Contact</span>
-                        <span className="truncate max-w-[150px]">{cItem.contactInfo}</span>
-                      </div>
+              <MagicCard 
+                key={cItem.id || i} 
+                className="rounded-[32px] shadow-[0_10px_40px_rgba(233,128,22,0.04)] flex flex-col gap-4 group"
+                gradientFrom="#da627d"
+                gradientTo="#450920"
+              >
+                <div className="p-6 flex flex-col gap-4">
+                  <div className="h-40 w-full rounded-2xl overflow-hidden bg-apricot-50 flex items-center justify-center border border-apricot-100/50">
+                    {cItem.imageUrl ? (
+                      <img src={cItem.imageUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={cItem.title} />
+                    ) : (
+                      <Utensils className="text-apricot-300" size={36} />
                     )}
                   </div>
+                  <div>
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="font-bold text-bordeaux-800 text-xl truncate pr-2">{cItem.title}</h3>
+                      <div className="bg-blush-50 text-[#cf3053] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shrink-0 flex items-center gap-1 border border-blush-100">
+                        <Tag size={10} /> {cItem.price || "Free"}
+                      </div>
+                    </div>
+                    <p className="text-sm font-medium text-gray-500 mb-5 line-clamp-2">{cItem.description}</p>
+                    
+                    <div className="flex flex-col gap-2 p-4 bg-apricot-50/50 rounded-2xl border border-apricot-100/50">
+                      <div className="flex items-center justify-between text-xs font-bold text-bordeaux-800">
+                        <span className="text-[#e98016] uppercase tracking-widest text-[10px]">Donor</span>
+                        <span>{cItem.userName || "Neighbor"}</span>
+                      </div>
+                      {cItem.contactInfo && (
+                        <div className="flex items-center justify-between text-xs font-bold text-bordeaux-800 border-t border-apricot-100/50 pt-2 border-dashed">
+                          <span className="text-[#e98016] uppercase tracking-widest text-[10px] flex items-center gap-1"><Phone size={10} /> Contact</span>
+                          <span className="truncate max-w-[150px]">{cItem.contactInfo}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </MagicCard>
             ))
           )}
         </div>

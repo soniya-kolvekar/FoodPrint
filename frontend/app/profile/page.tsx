@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
+import GooeyNav from "@/components/ui/GooeyNav";
 import { ArrowLeft, User, Mail, ShieldCheck, Heart, Trash, Clock, ChefHat, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -62,9 +63,9 @@ export default function ProfilePage() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 pb-32">
       <div className="mb-6">
-        <Link href="/dashboard" className="inline-flex items-center text-sm font-bold text-gray-500 hover:text-[#ff6670] transition-colors bg-white/50 px-4 py-2 rounded-full border border-gray-200">
-           <ArrowLeft size={16} className="mr-2" /> Back to Dashboard
-        </Link>
+        <div className="inline-block bg-white/60 backdrop-blur-md rounded-full border border-[#450920]/10 shadow-sm">
+          <GooeyNav items={[{ label: "← Dashboard", href: "/dashboard" }]} />
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8 items-start">

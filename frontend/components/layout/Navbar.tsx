@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
 import CardNav from "@/components/ui/CardNav";
@@ -10,6 +10,9 @@ import CardNav from "@/components/ui/CardNav";
 export const Navbar = () => {
   const { user } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+  const baseColor = isHome ? "rgba(69, 9, 32, 0.4)" : "rgba(69, 9, 32, 0.85)";
 
   const handleSignOut = async () => {
     try {
@@ -86,7 +89,7 @@ export const Navbar = () => {
       logo={logo}
       items={items}
       actionButton={actionButton}
-      baseColor="rgba(69, 9, 32, 0.4)"
+      baseColor={baseColor}
       menuColor="#fffbfa"
     />
   );

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
+import GooeyNav from "@/components/ui/GooeyNav";
 import { Search, ChefHat, Clock, ArrowLeft, Wand2, Heart, Flame, Soup, Coffee, Cookie, Loader2, Sparkles, Filter } from "lucide-react";
 import { db } from "@/lib/firebase/config";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
@@ -131,9 +132,9 @@ export default function Recipes() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 pb-20">
       <div className="mb-6 flex justify-between items-center">
-        <Link href="/dashboard" className="inline-flex items-center text-sm font-bold text-gray-500 hover:text-[#ff6670] transition-colors bg-white/50 px-4 py-2 rounded-full border border-gray-200 shadow-sm backdrop-blur-md">
-           <ArrowLeft size={16} className="mr-2" /> Back to Dashboard
-        </Link>
+        <div className="inline-block bg-white/60 backdrop-blur-md rounded-full border border-[#450920]/10 shadow-sm">
+          <GooeyNav items={[{ label: "← Dashboard", href: "/dashboard" }]} />
+        </div>
         
         <Link href="/substitutes">
            <motion.div 

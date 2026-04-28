@@ -124,10 +124,10 @@ export default function ShareFoodModal({ isOpen, onClose, userLocation }: ShareF
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               className="bg-white w-full max-w-lg rounded-[48px] shadow-3xl overflow-hidden pointer-events-auto border border-apricot-100 flex flex-col max-h-[90vh]"
             >
-              <div className="bg-apricot-50 px-10 py-8 flex justify-between items-center border-b border-apricot-100 shrink-0">
+              <div className="bg-[#fffbfa] px-10 py-8 flex justify-between items-center border-b border-[#450920]/10 shrink-0">
                 <div>
-                  <h2 className="text-[32px] font-serif text-bordeaux-800 leading-none mb-2">Share <span className="italic font-normal opacity-40">Food</span></h2>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-bordeaux-300">Prevent Waste, Help Neighbors</p>
+                  <h2 className="text-[32px] font-black text-[#450920] leading-none mb-2 tracking-tight font-sans">Share <span className="italic font-light text-[#a53860]">Food</span></h2>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[#a53860]/60">Prevent Waste, Help Neighbors</p>
                 </div>
                 <button
                   onClick={onClose}
@@ -171,7 +171,7 @@ export default function ShareFoodModal({ isOpen, onClose, userLocation }: ShareF
                         placeholder="e.g. 5 Organic Apples"
                         value={form.title}
                         onChange={e => setForm({...form, title: e.target.value})}
-                        className="w-full bg-white border border-apricot-100 rounded-2xl h-14 px-6 focus:border-apricot-500 outline-none transition-all font-bold text-bordeaux-800 placeholder:text-bordeaux-100 placeholder:font-medium"
+                        className="w-full bg-white border border-[#450920]/20 rounded-2xl h-14 px-6 focus:border-[#a53860] focus:ring-2 focus:ring-[#a53860]/20 outline-none transition-all font-bold text-[#450920] placeholder:text-[#450920]/30"
                       />
                     </div>
 
@@ -182,7 +182,7 @@ export default function ShareFoodModal({ isOpen, onClose, userLocation }: ShareF
                         placeholder="Any details? Pickup times? Condition?"
                         value={form.description}
                         onChange={e => setForm({...form, description: e.target.value})}
-                        className="w-full bg-white border border-apricot-100 rounded-2xl p-6 h-28 focus:border-apricot-500 outline-none transition-all font-medium text-bordeaux-800 placeholder:text-bordeaux-100 resize-none"
+                        className="w-full bg-white border border-[#450920]/20 rounded-2xl p-6 h-28 focus:border-[#a53860] focus:ring-2 focus:ring-[#a53860]/20 outline-none transition-all font-medium text-[#450920] placeholder:text-[#450920]/30 resize-none"
                       />
                     </div>
 
@@ -195,7 +195,7 @@ export default function ShareFoodModal({ isOpen, onClose, userLocation }: ShareF
                           placeholder="Phone or Email"
                           value={form.contactInfo}
                           onChange={e => setForm({...form, contactInfo: e.target.value})}
-                          className="w-full bg-white border border-apricot-100 rounded-2xl h-14 px-6 focus:border-apricot-500 outline-none transition-all font-bold text-bordeaux-800 placeholder:text-bordeaux-100 placeholder:font-medium"
+                          className="w-full bg-white border border-[#450920]/20 rounded-2xl h-14 px-6 focus:border-[#a53860] focus:ring-2 focus:ring-[#a53860]/20 outline-none transition-all font-bold text-[#450920] placeholder:text-[#450920]/30"
                         />
                       </div>
 
@@ -207,7 +207,7 @@ export default function ShareFoodModal({ isOpen, onClose, userLocation }: ShareF
                           placeholder="e.g. Free or $5"
                           value={form.price}
                           onChange={e => setForm({...form, price: e.target.value})}
-                          className="w-full bg-white border border-apricot-100 rounded-2xl h-14 px-6 focus:border-apricot-500 outline-none transition-all font-bold text-bordeaux-800 placeholder:text-bordeaux-100 placeholder:font-medium"
+                          className="w-full bg-white border border-[#450920]/20 rounded-2xl h-14 px-6 focus:border-[#a53860] focus:ring-2 focus:ring-[#a53860]/20 outline-none transition-all font-bold text-[#450920] placeholder:text-[#450920]/30"
                         />
                       </div>
                     </div>
@@ -290,7 +290,7 @@ export default function ShareFoodModal({ isOpen, onClose, userLocation }: ShareF
                     form="share-form"
                     type="submit"
                     disabled={loading || !selectedLocation}
-                    className="w-full h-16 rounded-2xl bg-gradient-to-r from-apricot-400 to-[#ff6670] hover:from-[#ff6670] hover:to-bordeaux-800 text-white font-black uppercase tracking-[0.2em] text-[12px] shadow-lg hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none"
+                    className="w-full h-16 rounded-2xl bg-[#450920] hover:bg-[#a53860] text-white font-black uppercase tracking-[0.2em] text-[12px] shadow-lg hover:shadow-xl transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none border-none"
                   >
                     {loading ? (
                       <Loader2 className="animate-spin" />
