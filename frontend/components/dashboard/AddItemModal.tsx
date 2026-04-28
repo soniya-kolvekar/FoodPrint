@@ -20,7 +20,7 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
     quantity: "1",
     unit: "pieces",
     customUnit: "",
-    expiry: "",
+    expiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,7 +48,8 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
 
       if (response.ok) {
         onClose();
-        setFormData({ name: "", quantity: "1", unit: "pieces", customUnit: "", expiry: "" });
+        const defaultExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        setFormData({ name: "", quantity: "1", unit: "pieces", customUnit: "", expiry: defaultExpiry });
       } else {
         console.error("Failed to add item");
       }

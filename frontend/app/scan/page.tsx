@@ -150,7 +150,13 @@ export default function Scan() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to parse");
 
-      setScannedItems(data.items || []);
+      const defaultExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const itemsWithExpiry = (data.items || []).map((item: any) => ({
+        ...item,
+        expiry: item.expiry || defaultExpiry
+      }));
+
+      setScannedItems(itemsWithExpiry);
       setStep("review");
     } catch (error: any) {
       alert("Error parsing image: " + error.message);
@@ -196,7 +202,8 @@ export default function Scan() {
   };
 
   const addItemManually = () => {
-    setScannedItems([...scannedItems, { name: "", quantity: 1, unit: "unit", source: "manual" }]);
+    const defaultExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    setScannedItems([...scannedItems, { name: "", quantity: 1, unit: "unit", expiry: defaultExpiry, source: "manual" }]);
   };
 
   if (loading || !user) return <div className="min-h-screen flex items-center justify-center font-medium text-gray-500">Authenticating...</div>;
@@ -332,7 +339,7 @@ export default function Scan() {
                             className="font-bold text-lg text-bordeaux-800 capitalize bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-apricot-400 focus:outline-none w-full transition-colors pb-1"
                             placeholder="e.g. Organic Almond Milk"
                           />
-                          <div className="flex gap-2 items-center">
+                          <div className="flex gap-2 items-center flex-wrap mt-1">
                             <input 
                               type="number"
                               value={item.quantity} 
@@ -346,6 +353,12 @@ export default function Scan() {
                               onChange={(e) => updateItem(idx, 'unit', e.target.value)}
                               className="w-24 text-sm font-medium text-apricot-700 bg-apricot-50 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 ring-apricot-400 border border-transparent hover:border-apricot-200"
                               placeholder="unit"
+                            />
+                            <input 
+                              type="date"
+                              value={item.expiry || ""} 
+                              onChange={(e) => updateItem(idx, 'expiry', e.target.value)}
+                              className="flex-1 text-sm font-medium text-apricot-700 bg-apricot-50 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 ring-apricot-400 border border-transparent hover:border-apricot-200 min-w-[120px]"
                             />
                           </div>
                        </div>

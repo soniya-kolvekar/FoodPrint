@@ -217,13 +217,6 @@ export default function ExpiryHeatmap() {
         </Link>
       </div>
 
-      <div className="fixed top-10 right-10 z-[110] flex gap-4">
-        <div className="hidden md:flex items-center gap-3 px-6 py-3 rounded-full bg-white backdrop-blur-3xl border border-apricot-100 text-[12px] font-bold uppercase tracking-widest text-bordeaux-300 italic">
-          <ThermometerSnowflake size={14} className="text-[#ee9944]" />
-          Atmospheric Heat: <span className="text-bordeaux-800 ml-2">Normalized</span>
-        </div>
-      </div>
-
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden text-[#e98016]">
         <svg className="w-full h-full opacity-[0.05]" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
           <motion.circle cx="800" cy="200" r="400" fill="currentColor" animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }} transition={{ duration: 15, repeat: Infinity }} />
