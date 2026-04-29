@@ -9,6 +9,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import GooeyNav from "@/components/ui/GooeyNav";
 import { MagicCard } from "@/components/ui/MagicCard";
+import { FoodReflectiveCard } from "@/components/ui/FoodReflectiveCard";
 import { db } from "@/lib/firebase/config";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import ShareFoodModal from "@/components/community/ShareFoodModal";
@@ -102,19 +103,19 @@ export default function Community() {
             <GooeyNav items={[{ label: "← Dashboard", href: "/dashboard" }]} />
           </div>
           <MagicCard 
-            className="rounded-[32px] border border-apricot-100 shadow-xl pointer-events-auto max-w-sm"
+            className="rounded-[32px] shadow-2xl pointer-events-auto max-w-sm"
             gradientFrom="#da627d"
             gradientTo="#450920"
           >
             <div className="p-8 flex flex-col">
-              <h1 className="text-4xl font-serif font-bold text-bordeaux-800 mb-2 leading-none flex items-center gap-3">
-                Local <MapIcon size={28} className="text-apricot-500" />
+              <h1 className="text-4xl font-black text-[#450920] mb-2 leading-none flex items-center gap-3 font-sans">
+                Local <MapIcon size={28} className="text-[#a53860]" />
               </h1>
-              <p className="text-[13px] font-medium text-bordeaux-400 mb-6">Discover {filteredItems.length} active sharing spots in your neighborhood to prevent food waste.</p>
+              <p className="text-[13px] font-medium text-[#450920]/70 mb-6">Discover {filteredItems.length} active sharing spots in your neighborhood to prevent food waste.</p>
               
               {/* Filters */}
               <div className="flex flex-col gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-apricot-600 ml-1">Search Radius</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#a53860] ml-1">Search Radius</span>
                 <div className="flex bg-apricot-50/50 p-1 rounded-xl border border-apricot-100">
                   {[2, 5, 10, 50].map((r) => (
                     <button
@@ -169,12 +170,12 @@ export default function Community() {
       </div>
 
       {/* RIGHT SIDEBAR: COMMUNITY CARDS */}
-      <div className="w-[450px] shrink-0 bg-[#fffbfa] border-l border-apricot-100 flex flex-col z-[40] shadow-[-10px_0_30px_rgba(233,128,22,0.02)] h-full overflow-hidden">
-        <div className="p-8 border-b border-apricot-100 bg-white shadow-sm shrink-0">
+      <div className="w-[450px] shrink-0 bg-[#fff5f7] border-l border-[#450920]/10 flex flex-col z-[40] shadow-[-10px_0_40px_rgba(69,9,32,0.05)] h-full overflow-hidden font-sans">
+        <div className="p-8 border-b border-[#450920]/10 bg-[#fffbfa] shadow-sm shrink-0">
           <h2 className="text-3xl font-black text-[#450920] mb-2 flex items-center gap-2 tracking-tight font-sans">
              Community <span className="italic font-light text-[#a53860]">Share</span>
           </h2>
-          <p className="text-[13px] font-medium text-bordeaux-400">View contact details and claim shared items from your neighbors.</p>
+          <p className="text-[13px] font-bold text-[#450920]/60 uppercase tracking-wider">Connect & Share</p>
         </div>
 
         <div className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
@@ -184,44 +185,7 @@ export default function Community() {
             </div>
           ) : (
             filteredItems.map((cItem, i) => (
-              <MagicCard 
-                key={cItem.id || i} 
-                className="rounded-[32px] shadow-[0_10px_40px_rgba(233,128,22,0.04)] flex flex-col gap-4 group"
-                gradientFrom="#da627d"
-                gradientTo="#450920"
-              >
-                <div className="p-6 flex flex-col gap-4">
-                  <div className="h-40 w-full rounded-2xl overflow-hidden bg-apricot-50 flex items-center justify-center border border-apricot-100/50">
-                    {cItem.imageUrl ? (
-                      <img src={cItem.imageUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={cItem.title} />
-                    ) : (
-                      <Utensils className="text-apricot-300" size={36} />
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-bold text-bordeaux-800 text-xl truncate pr-2">{cItem.title}</h3>
-                      <div className="bg-blush-50 text-[#cf3053] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shrink-0 flex items-center gap-1 border border-blush-100">
-                        <Tag size={10} /> {cItem.price || "Free"}
-                      </div>
-                    </div>
-                    <p className="text-sm font-medium text-gray-500 mb-5 line-clamp-2">{cItem.description}</p>
-                    
-                    <div className="flex flex-col gap-2 p-4 bg-apricot-50/50 rounded-2xl border border-apricot-100/50">
-                      <div className="flex items-center justify-between text-xs font-bold text-bordeaux-800">
-                        <span className="text-[#e98016] uppercase tracking-widest text-[10px]">Donor</span>
-                        <span>{cItem.userName || "Neighbor"}</span>
-                      </div>
-                      {cItem.contactInfo && (
-                        <div className="flex items-center justify-between text-xs font-bold text-bordeaux-800 border-t border-apricot-100/50 pt-2 border-dashed">
-                          <span className="text-[#e98016] uppercase tracking-widest text-[10px] flex items-center gap-1"><Phone size={10} /> Contact</span>
-                          <span className="truncate max-w-[150px]">{cItem.contactInfo}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </MagicCard>
+              <FoodReflectiveCard key={cItem.id || i} item={cItem} />
             ))
           )}
         </div>

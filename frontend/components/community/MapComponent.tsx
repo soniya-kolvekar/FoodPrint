@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapPin, Navigation, Clock, User } from "lucide-react";
@@ -66,7 +66,12 @@ interface MapComponentProps {
 }
 
 export default function MapComponent({ items, userLocation, onLocationUpdate, interactiveSelect, selectedLocation }: MapComponentProps) {
-  // If no user location is available yet, default to a generic wide view (e.g., center of US or a specific known city)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // If no user location is available yet, default to a generic wide view
   const defaultCenter: [number, number] = [37.7749, -122.4194]; // SF
 
   // Map events for picking a location
@@ -80,9 +85,8 @@ export default function MapComponent({ items, userLocation, onLocationUpdate, in
     });
     return null;
   };
-  
-  // Need to dynamically import useMapEvents as it requires context
-  const { useMapEvents } = require("react-leaflet");
+
+  if (!mounted) return null;
 
   return (
     <div className="w-full h-full relative border border-gray-200 overflow-hidden rounded-[40px] shadow-sm z-0">
