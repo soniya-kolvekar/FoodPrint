@@ -11,9 +11,19 @@ import FallingText from "@/components/ui/FallingText";
 import { Search, ChefHat, Clock, ArrowLeft, Wand2, Heart, Flame, Soup, Coffee, Cookie, Loader2, Sparkles, Filter } from "lucide-react";
 import { db } from "@/lib/firebase/config";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { MagicCard } from "@/components/ui/MagicCard";
+import { BorderBeam } from "@/components/ui/BorderBeam";
 
 const tastes = ["Any", "Sweet", "Spicy", "Savory", "Healthy"];
 const meals = ["Any", "Breakfast", "Lunch", "Dinner", "Snack"];
+
+const cardStyles = [
+  { bg: "#fef2e7", border: "border-[#f9dbbd]", text: "text-[#450920]", textMuted: "text-[#a53860]/80", btnBg: "bg-[#450920]/5 border-[#450920]/10 text-[#450920] hover:bg-[#450920]/10" },
+  { bg: "#ffe5e7", border: "border-[#ffa5ab]/60", text: "text-[#450920]", textMuted: "text-[#a53860]/80", btnBg: "bg-[#a53860]/5 border-[#a53860]/10 text-[#450920] hover:bg-[#a53860]/10" },
+  { bg: "#fcecee", border: "border-[#da627d]/40", text: "text-[#450920]", textMuted: "text-[#a53860]/80", btnBg: "bg-[#da627d]/5 border-[#da627d]/10 text-[#450920] hover:bg-[#da627d]/10" },
+  { bg: "#f9ebf0", border: "border-[#a53860]/40", text: "text-[#450920]", textMuted: "text-[#a53860]/80", btnBg: "bg-[#a53860]/5 border-[#a53860]/10 text-[#450920] hover:bg-[#a53860]/10" },
+  { bg: "#f8eaec", border: "border-[#450920]/30", text: "text-[#450920]", textMuted: "text-[#a53860]/80", btnBg: "bg-[#450920]/5 border-[#450920]/10 text-[#450920] hover:bg-[#450920]/10" },
+];
 
 
 export default function Recipes() {
@@ -26,10 +36,32 @@ export default function Recipes() {
   const [mealType, setMealType] = useState("Any");
   const [taste, setTaste] = useState("Any");
   const [savingId, setSavingId] = useState<number | null>(null);
-
+  const [savedRecipes, setSavedRecipes] = useState<any[]>([]);
+ 
   useEffect(() => {
     if (!authLoading && !user) router.push("/login");
   }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (user) {
+      fetchSavedRecipes();
+    }
+  }, [user]);
+
+  const fetchSavedRecipes = async () => {
+    try {
+      const token = await user?.getIdToken();
+      const res = await fetch("http://localhost:5000/api/recipes/saved", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSavedRecipes(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch favorites:", err);
+    }
+  };
 
   // 1. Real-time Pantry Listener
   useEffect(() => {
@@ -100,26 +132,37 @@ export default function Recipes() {
     setSavingId(recipe.id);
     try {
       const token = await user.getIdToken();
-      const res = await fetch("http://localhost:5000/api/recipes/save", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
-        },
-        body: JSON.stringify({
-          recipeId: recipe.id,
-          title: recipe.title,
-          image: recipe.image,
-          time: recipe.time,
-          servings: recipe.servings
-        })
-      });
+      const isAlreadySaved = savedRecipes.some(r => r.recipeId.toString() === recipe.id.toString());
 
-      if (res.ok) {
-        alert("Recipe saved to your heart! ❤️");
+      if (isAlreadySaved) {
+        const res = await fetch(`http://localhost:5000/api/recipes/saved/${recipe.id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          setSavedRecipes(savedRecipes.filter(r => r.recipeId.toString() !== recipe.id.toString()));
+        }
+      } else {
+        const res = await fetch("http://localhost:5000/api/recipes/save", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}` 
+          },
+          body: JSON.stringify({
+            recipeId: recipe.id,
+            title: recipe.title,
+            image: recipe.image,
+            time: recipe.time,
+            servings: recipe.servings
+          })
+        });
+        if (res.ok) {
+          setSavedRecipes([...savedRecipes, { recipeId: recipe.id }]);
+        }
       }
     } catch (err) {
-      alert("Failed to save recipe");
+      alert("Failed to update favorite");
     } finally {
       setSavingId(null);
     }
@@ -131,79 +174,32 @@ export default function Recipes() {
   if (loading || !user) return <div className="min-h-screen flex items-center justify-center font-medium text-gray-500">Authenticating...</div>;
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 pb-20">
-      <div className="mb-6 flex justify-between items-center">
+    <div className="min-h-screen bg-[#fffbfa] text-[#450920] relative overflow-x-hidden font-sans flex flex-col selection:bg-[#da627d]/20">
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.3]">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#ffa5ab]/20 rounded-full blur-[200px] -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#f9dbbd]/30 rounded-full blur-[180px] translate-y-1/2 -translate-x-1/2"></div>
+      </div>
+
+      <main className="flex-grow w-full max-w-[1400px] mx-auto px-6 md:px-10 pt-[40px] pb-32 relative z-10">
+        <div className="mb-6 flex justify-between items-center">
         <div className="inline-block bg-white/60 backdrop-blur-md rounded-full border border-[#450920]/10 shadow-sm">
           <GooeyNav items={[{ label: "← Dashboard", href: "/dashboard" }]} />
         </div>
         
-        <Link href="/substitutes">
-           <motion.div 
-             whileHover={{ scale: 1.02 }}
-             whileTap={{ scale: 0.98 }}
-             className="relative group cursor-pointer inline-flex items-center"
-           >
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#e98016] to-[#cf3053] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
-              <div className="relative bg-white border border-[#fbe6d0] text-[#a52742] px-6 py-3 rounded-2xl flex items-center gap-3 font-bold shadow-sm group-hover:shadow-md transition-all">
-                <div className="w-8 h-8 rounded-lg bg-[#fffbfa] flex items-center justify-center border border-[#fbe6d0]">
-                  <Wand2 size={16} className="text-[#e98016]"/>
-                </div>
-                <span className="text-[14px]">Missing ingredients? Find Substitutes</span>
-              </div>
-           </motion.div>
-        </Link>
+        <div className="inline-block bg-white/60 backdrop-blur-md rounded-full border border-[#450920]/10 shadow-sm">
+          <GooeyNav items={[{ label: "✨ Find Substitutes", href: "/substitutes" }]} />
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
         <div>
-           <div className="flex items-center gap-2 mb-2">
-             <div className="p-2 bg-orange-100 rounded-lg">
-                <ChefHat className="text-orange-600" size={20} />
-             </div>
-             <span className="text-orange-600 font-bold tracking-widest text-xs uppercase">Your Personal AI Chef</span>
-           </div>
            <h1 className="text-4xl font-black text-bordeaux-800 tracking-tight">Recipe Rescue</h1>
            <p className="text-bordeaux-600 mt-2 text-lg">Strictly using ONLY the <b>{pantryItems.length} items</b> currently in your stock.</p>
         </div>
 
       </div>
       
-      {/* 🧭 FILTER UI */}
-      <div className="space-y-6 mb-12">
-        <div>
-          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-            <Filter size={14} className="mr-2" /> Meal Type
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {meals.map(m => (
-              <button 
-                key={m} 
-                onClick={() => setMealType(m)}
-                className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${mealType === m ? 'bg-apricot-400 text-white shadow-lg shadow-apricot-400/30' : 'bg-white text-gray-400 border border-gray-100 hover:border-apricot-200'}`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-        </div>
 
-        <div>
-          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-             <Sparkles size={14} className="mr-2" /> Taste Filter
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {tastes.map(t => (
-              <button 
-                key={t} 
-                onClick={() => setTaste(t)}
-                className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${taste === t ? 'bg-[#ff6670] text-white shadow-lg shadow-berry-400/30' : 'bg-white text-gray-400 border border-gray-100 hover:border-berry-100'}`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-32 space-y-4">
@@ -219,46 +215,52 @@ export default function Recipes() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <AnimatePresence>
-            {recipes.map((r, i) => (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4, delay: i * 0.05 }} 
-                key={r.id}
-              >
-                <Card className="p-0 overflow-hidden hover:shadow-2xl transition-all border-0 shadow-lg bg-white rounded-3xl group h-full flex flex-col">
-                    <div className="h-56 w-full overflow-hidden relative">
+            {recipes.map((r, i) => {
+              const style = cardStyles[i % cardStyles.length];
+              return (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.4, delay: i * 0.05 }} 
+                  key={r.id}
+                  className="h-[650px] rounded-[32px] overflow-hidden relative"
+                >
+                  <MagicCard 
+                    className={`w-full h-full rounded-[32px] shadow-xl border-2 ${style.border} relative overflow-hidden flex flex-col p-0`}
+                    gradientFrom="#da627d"
+                    gradientTo="#450920"
+                    backgroundColor={style.bg}
+                  >
+                    <BorderBeam size={250} duration={12} colorFrom="#da627d" colorTo="#450920" borderRadius={32} />
+                    <div className="h-56 w-full overflow-hidden relative shrink-0">
                       <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors z-10" />
                       <img src={r.image} alt={r.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                       <button 
                         onClick={() => handleSave(r)}
-                        className={`absolute top-4 right-4 p-3 rounded-full backdrop-blur-md z-20 transition-all ${savingId === r.id ? 'bg-gray-200 animate-pulse' : 'bg-white/80 hover:bg-[#ff6670] hover:text-white text-[#ff6670]'}`}
+                        className={`absolute top-4 right-4 p-3 rounded-full backdrop-blur-md z-20 transition-all ${savingId === r.id ? 'bg-gray-200 animate-pulse' : savedRecipes.some(liked => liked.recipeId.toString() === r.id.toString()) ? 'bg-[#ff6670] text-white' : 'bg-white/80 hover:bg-[#ff6670] hover:text-white text-[#ff6670]'}`}
                       >
-                         <Heart size={20} fill={savingId === r.id ? "currentColor" : "none"} />
+                         <Heart size={20} fill={savedRecipes.some(liked => liked.recipeId.toString() === r.id.toString()) ? "currentColor" : "none"} />
                       </button>
                     </div>
                     
-                    <div className="p-8 flex-1 flex flex-col">
+                    <div className={`p-8 flex-1 flex flex-col relative z-30 ${style.text}`}>
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1 pr-4">
-                           <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-md uppercase font-black tracking-tighter">Powered by {r.source}</span>
-                           </div>
-                           <h3 className="text-2xl font-black text-bordeaux-800 leading-tight">{r.title}</h3>
+                           <h3 className="text-2xl font-black leading-tight text-[#450920] capitalize tracking-tight">{r.title}</h3>
                         </div>
                       </div>
                       
-                      <p className="text-gray-500 text-sm mb-6 line-clamp-2 italic">"{r.summary}"</p>
+                      <p className={`${style.textMuted} text-sm mb-6 line-clamp-3 font-medium`}>"{r.summary}"</p>
 
                       <div className="flex gap-4 mb-4">
-                        <div className={`${r.matchPercentage === 100 ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'} px-4 py-2 rounded-2xl flex items-center gap-2`}>
+                        <div className={`${r.matchPercentage === 100 ? 'bg-green-50/80 text-green-700 border border-green-200' : 'bg-orange-50/80 text-orange-700 border border-orange-200'} px-4 py-2 rounded-2xl flex items-center gap-2`}>
                            <ChefHat size={16} />
                            <span className="font-bold text-xs uppercase tracking-wider">
                               {r.matchPercentage}% Match
                            </span>
                         </div>
-                        <div className="bg-gray-50 px-4 py-2 rounded-2xl flex items-center gap-2">
+                        <div className="bg-white/50 border border-gray-200 px-4 py-2 rounded-2xl flex items-center gap-2">
                            <Clock size={16} className="text-gray-400" />
                            <span className="text-gray-600 font-bold text-xs">{r.time}</span>
                         </div>
@@ -282,32 +284,29 @@ export default function Recipes() {
                       )}
 
                       <div className="mt-auto">
-                         <Button className="w-full h-14 rounded-2xl font-bold bg-[#ff6670] border-0 hover:shadow-xl hover:shadow-berry-400/30 transition-all hover:scale-[1.02]">
+                         <Button className={`w-full h-12 rounded-2xl font-bold border-0 text-white bg-gradient-to-r from-[#da627d] to-[#ffa5ab] hover:shadow-xl transition-all hover:scale-[1.02]`}>
                             Start Cooking
                          </Button>
                       </div>
                     </div>
-                </Card>
-              </motion.div>
-            ))}
+                  </MagicCard>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </div>
       )}
+      </main>
       {/* FOOTER */}
-      <footer className="w-full bg-[#1d070c] py-14 px-6 md:px-12 text-[#fffbfa] mt-20 relative z-30 shadow-[0_-20px_50px_rgba(0,0,0,0.15)] overflow-hidden">
+      <footer className="w-full bg-[#1d070c] py-14 px-6 md:px-12 text-[#fffbfa] mt-auto relative z-30 shadow-[0_-20px_50px_rgba(0,0,0,0.15)] overflow-hidden">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[14px] text-[#f9dbbd]/70 font-semibold font-sans">
            <div className="w-full md:w-2/3">
-              <FallingText 
-                text="© 2026 FoodPrint. Save food, save money, save the planet. 100% Free Web App. No credit card required."
-                trigger="auto"
-                fontSize="14px"
-                backgroundColor="transparent"
-              />
+              <span>© 2026 FoodPrint. Save food, save money, save the planet. 100% Free Web App. No credit card required.</span>
            </div>
            <div className="flex gap-6 justify-center md:justify-end w-full md:w-1/3">
-              <span className="hover:text-[#da627d] transition-colors">Privacy</span>
-              <span className="hover:text-[#da627d] transition-colors">Terms</span>
-              <span className="hover:text-[#da627d] transition-colors">Support</span>
+              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Privacy</span>
+              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Terms</span>
+              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Support</span>
            </div>
         </div>
       </footer>

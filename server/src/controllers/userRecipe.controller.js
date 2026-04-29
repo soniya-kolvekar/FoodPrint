@@ -15,9 +15,9 @@ exports.saveRecipe = async (req, res) => {
     await savedRef.set({
       recipeId,
       title,
-      image,
-      servings,
-      time,
+      image: image || "",
+      servings: servings || "N/A",
+      time: time || "N/A",
       savedAt: new Date().toISOString()
     });
 
