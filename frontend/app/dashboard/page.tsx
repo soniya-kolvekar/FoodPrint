@@ -14,6 +14,7 @@ import { BorderBeam } from "@/components/ui/BorderBeam";
 import { MagicCard } from "@/components/ui/MagicCard";
 import TiltedCard from "@/components/ui/TiltedCard";
 import FallingText from "@/components/ui/FallingText";
+import GooeyNav from "@/components/ui/GooeyNav";
 
 interface PantryItem {
   id: string;
@@ -165,9 +166,12 @@ export default function Dashboard() {
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#f9dbbd]/30 rounded-full blur-[180px] translate-y-1/2 -translate-x-1/2"></div>
       </div>
 
-      <main className="relative z-10 w-full max-w-[1400px] mx-auto px-10 pt-[80px] pb-32">
-         <div className="flex flex-col lg:flex-row justify-between items-end mb-20 gap-12">
+      <main className="relative z-10 w-full max-w-[1400px] mx-auto px-10 pt-[40px] pb-32">
+         <div className="flex flex-col lg:flex-row justify-between items-end mb-12 gap-12">
             <div>
+               <div className="mb-6 inline-block bg-white/60 backdrop-blur-md rounded-full border border-[#450920]/10 shadow-sm">
+                  <GooeyNav items={[{ label: "← Home", href: "/" }]} />
+               </div>
                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                   <h1 className="text-[64px] font-black leading-none tracking-tight mb-8 text-[#450920] font-sans">My <span className="italic font-light text-[#da627d]">Dashboard</span></h1>
                   <p className="text-[20px] text-[#450920]/70 leading-relaxed font-medium max-w-[600px]">
@@ -297,7 +301,7 @@ export default function Dashboard() {
                           gradientTo="#450920"
                           backgroundColor={style.bg}
                         >
-                          <BorderBeam size={250} duration={12} colorFrom="#da627d" colorTo="#450920" />
+                          <BorderBeam size={250} duration={12} colorFrom="#da627d" colorTo="#450920" borderRadius={32} />
                           {cardContent}
                         </MagicCard>
                     </motion.div>
