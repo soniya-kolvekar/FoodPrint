@@ -136,11 +136,12 @@ export default function ProfilePage() {
            </div>
 
            <TiltedCard 
-             containerHeight="660px"
+             containerHeight={isEditing ? "780px" : "660px"}
              containerWidth="100%"
-             imageHeight="630px"
+             imageHeight={isEditing ? "750px" : "630px"}
              imageWidth="100%"
-             scaleOnHover={1.03}
+             scaleOnHover={isEditing ? 1 : 1.03}
+             rotateAmplitude={isEditing ? 0 : 14}
              showTooltip={false}
              showMobileWarning={false}
              displayOverlayContent={true}
