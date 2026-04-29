@@ -3,9 +3,11 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import SoftAurora from "@/components/ui/SoftAurora";
+import SpotlightCard from "@/components/ui/SpotlightCard";
+import { MagicCard } from "@/components/ui/MagicCard";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -24,46 +26,69 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 relative">
-       <div className="absolute top-[20%] left-[30%] w-64 h-64 bg-berry-200 blur-[100px] rounded-full opacity-40 z-[-1]" />
+    <div className="min-h-screen bg-[#fff7f8] flex items-center justify-center px-4 relative overflow-hidden font-sans selection:bg-[#da627d]/20">
+       <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.35]">
+         <SoftAurora color1="#ffa5ab" color2="#f9dbbd" speed={0.4} brightness={1.3} />
+       </div>
        
-       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.4 }} className="w-full max-w-md">
-         <Card className="p-8">
-           <div className="text-center mb-8">
-             <h2 className="text-3xl font-bold text-bordeaux-800">Welcome Back</h2>
-             <p className="text-bordeaux-600 mt-2">Log in to manage your smart pantry</p>
-           </div>
-           
-           {error && <div className="p-3 mb-4 text-sm text-red-600 bg-red-100 rounded-lg">{error}</div>}
-           
-           <form onSubmit={handleLogin} className="flex flex-col gap-5">
-             <div>
-               <label className="block text-sm font-medium text-bordeaux-800 mb-1">Email</label>
-               <input 
-                 type="email" 
-                 value={email}
-                 onChange={e => setEmail(e.target.value)}
-                 className="w-full px-4 py-3 rounded-xl border border-white/40 bg-white/50 focus:outline-none focus:ring-2 focus:ring-apricot-400"
-                 required
-               />
+       <motion.div 
+         initial={{ scale: 0.95, opacity: 0 }} 
+         animate={{ scale: 1, opacity: 1 }} 
+         transition={{ duration: 0.4 }} 
+         className="w-full max-w-md relative z-10 -mt-24"
+       >
+         <SpotlightCard
+           showBorderBeam={true}
+           beamColorFrom="#ffa5ab"
+           beamColorTo="#f9dbbd"
+           className="w-full rounded-[40px] shadow-2xl overflow-hidden"
+         >
+           <MagicCard 
+             mode="gradient"
+             gradientFrom="#da627d"
+             gradientTo="#ffa5ab"
+             backgroundColor="#6b1538"
+             className="w-full p-10 rounded-[40px] border-2 border-[#ffa5ab]/30 flex flex-col"
+           >
+             <div className="text-center mb-8 relative z-40">
+               <h2 className="text-[32px] font-black text-[#fffbfa] tracking-tight">Welcome Back</h2>
+               <p className="text-[#ffa5ab] mt-2 font-medium">Log in to manage your smart pantry</p>
              </div>
-             <div>
-               <label className="block text-sm font-medium text-bordeaux-800 mb-1">Password</label>
-               <input 
-                 type="password" 
-                 value={password}
-                 onChange={e => setPassword(e.target.value)}
-                 className="w-full px-4 py-3 rounded-xl border border-white/40 bg-white/50 focus:outline-none focus:ring-2 focus:ring-apricot-400"
-                 required
-               />
+             
+             {error && <div className="p-3 mb-4 text-sm font-bold text-red-200 bg-red-950/60 border border-red-800/60 rounded-2xl relative z-40">{error}</div>}
+             
+             <form onSubmit={handleLogin} className="flex flex-col gap-5 relative z-40">
+               <div>
+                 <label className="block text-sm font-extrabold text-[#ffa5ab] mb-1.5 ml-1">Email</label>
+                 <input 
+                   type="email" 
+                   value={email}
+                   onChange={e => setEmail(e.target.value)}
+                   className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-white/10 text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#da627d]/50 placeholder-white/30"
+                   placeholder="your@email.com"
+                   required
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-extrabold text-[#ffa5ab] mb-1.5 ml-1">Password</label>
+                 <input 
+                   type="password" 
+                   value={password}
+                   onChange={e => setPassword(e.target.value)}
+                   className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-white/10 text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#da627d]/50 placeholder-white/30"
+                   placeholder="••••••••"
+                   required
+                 />
+               </div>
+               <Button type="submit" className="w-full mt-4 h-12 bg-[#da627d] hover:bg-[#a53860] text-white font-black rounded-full shadow-lg shadow-[#da627d]/20 cursor-pointer transition-all border-0 text-base">Log In</Button>
+             </form>
+             
+             <div className="mt-6 text-center text-sm text-[#fffbfa]/70 font-medium relative z-40">
+               Don't have an account?{" "}
+               <a href="/signup" className="text-[#ffa5ab] font-extrabold hover:underline">Sign up</a>
              </div>
-             <Button type="submit" className="w-full mt-4 h-12 text-lg">Log In</Button>
-           </form>
-           
-           <div className="mt-6 text-center text-sm text-bordeaux-700">
-             Don't have an account? <a href="/signup" className="text-berry-600 font-semibold hover:underline">Sign up</a>
-           </div>
-         </Card>
+           </MagicCard>
+         </SpotlightCard>
        </motion.div>
     </div>
   );
