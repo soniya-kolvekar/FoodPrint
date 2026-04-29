@@ -26,10 +26,10 @@ export function BatchBreakdown({ isOpen, onClose, itemName, unit, batches }: Bat
   };
 
   const getStatusColor = (days: number | null) => {
-    if (days === null) return "text-bordeaux-300 bg-gray-50 border-gray-100";
-    if (days <= 0) return "text-[#cf3053] bg-blush-50 border-[#cf3053]/20";
-    if (days <= 3) return "text-[#e98016] bg-apricot-50 border-[#e98016]/20";
-    return "text-green-700 bg-green-50 border-green-200";
+    if (days === null) return "text-[#fffbfa]/70 bg-white/5 border-white/10";
+    if (days <= 0) return "text-[#cf3053] bg-[#cf3053]/10 border-[#cf3053]/20";
+    if (days <= 3) return "text-[#e98016] bg-[#e98016]/10 border-[#e98016]/20";
+    return "text-green-400 bg-green-500/10 border-green-500/20";
   };
 
   return (
@@ -41,22 +41,22 @@ export function BatchBreakdown({ isOpen, onClose, itemName, unit, batches }: Bat
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-bordeaux-950/20 backdrop-blur-md z-[110]"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[110]"
           />
-          <div className="fixed inset-0 flex items-center justify-center p-4 z-[120] pointer-events-none">
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-[120] pointer-events-none font-sans">
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white w-full max-w-sm rounded-[48px] shadow-3xl overflow-hidden pointer-events-auto border border-apricot-100"
+              className="bg-[#450920]/90 backdrop-blur-3xl w-full max-w-sm rounded-[40px] shadow-2xl overflow-hidden pointer-events-auto border border-white/10 text-[#fffbfa]"
             >
-              <div className="p-10 text-bordeaux-800">
+              <div className="p-10 text-[#fffbfa]">
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h3 className="text-[32px] font-serif capitalize mb-1 leading-none">{itemName}</h3>
-                    <p className="text-bordeaux-300 text-[12px] font-bold uppercase tracking-widest">Batch Breakdown</p>
+                    <h3 className="text-[32px] font-black capitalize mb-1 leading-none font-sans">{itemName}</h3>
+                    <p className="text-[#f9dbbd]/70 text-[12px] font-bold uppercase tracking-widest">Batch Breakdown</p>
                   </div>
-                  <button onClick={onClose} className="w-11 h-11 rounded-full bg-apricot-50 flex items-center justify-center text-bordeaux-300 hover:text-bordeaux-800 transition border border-apricot-100">
+                  <button onClick={onClose} className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-[#fffbfa]/70 hover:text-[#fffbfa] transition border border-white/10">
                     <X size={20} />
                   </button>
                 </div>
@@ -65,14 +65,14 @@ export function BatchBreakdown({ isOpen, onClose, itemName, unit, batches }: Bat
                   {batches.map((batch, idx) => {
                     const daysLeft = calculateDaysLeft(batch.expiry);
                     return (
-                      <div key={batch.id || idx} className="flex items-center justify-between p-6 bg-white rounded-3xl border border-apricot-50 hover:border-apricot-200 transition group">
+                      <div key={batch.id || idx} className="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/10 hover:border-white/20 transition group">
                         <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 bg-apricot-50 rounded-2xl flex items-center justify-center text-apricot-500 border border-apricot-100 group-hover:bg-apricot-500 group-hover:text-white transition-colors">
+                          <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center text-[#da627d] border border-white/10 group-hover:bg-[#da627d] group-hover:text-white transition-colors">
                              <Package size={22} />
                           </div>
                           <div>
-                            <p className="text-[18px] font-bold text-bordeaux-800">{batch.quantity} {unit}</p>
-                            <div className="flex items-center text-[10px] font-bold uppercase tracking-widest text-bordeaux-200">
+                            <p className="text-[18px] font-bold text-[#fffbfa]">{batch.quantity} {unit}</p>
+                            <div className="flex items-center text-[10px] font-bold uppercase tracking-widest text-[#fffbfa]/40">
                               Added {new Date(batch.addedAt).toLocaleDateString()}
                             </div>
                           </div>
@@ -87,16 +87,16 @@ export function BatchBreakdown({ isOpen, onClose, itemName, unit, batches }: Bat
 
                   {!batches.length && (
                     <div className="text-center py-12">
-                       <p className="text-bordeaux-200 italic font-serif">No batch data available</p>
+                       <p className="text-[#fffbfa]/40 italic font-sans">No batch data available</p>
                     </div>
                   )}
                 </div>
                 
-                <div className="mt-10 pt-8 border-t border-apricot-50 flex flex-col items-center">
-                  <p className="text-[10px] text-center text-bordeaux-200 font-bold uppercase tracking-widest mb-6">
+                <div className="mt-10 pt-8 border-t border-white/10 flex flex-col items-center">
+                  <p className="text-[10px] text-center text-[#fffbfa]/40 font-bold uppercase tracking-widest mb-6">
                     Oldest batches prioritized first
                   </p>
-                  <button onClick={onClose} className="w-full py-5 bg-apricot-500 text-white rounded-2xl font-black uppercase tracking-widest text-[12px] hover:bg-bordeaux-800 transition shadow-lg">
+                  <button onClick={onClose} className="w-full py-5 bg-[#da627d] text-white rounded-2xl font-black uppercase tracking-widest text-[12px] hover:bg-[#cf3053] transition shadow-lg">
                     Close Breakdown
                   </button>
                 </div>

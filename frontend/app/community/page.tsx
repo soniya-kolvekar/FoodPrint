@@ -13,6 +13,7 @@ import { FoodReflectiveCard } from "@/components/ui/FoodReflectiveCard";
 import { db } from "@/lib/firebase/config";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import ShareFoodModal from "@/components/community/ShareFoodModal";
+import FallingText from "@/components/ui/FallingText";
 
 const MapOverlay = dynamic(() => import("@/components/community/MapComponent"), { 
   ssr: false, 
@@ -192,10 +193,12 @@ export default function Community() {
       </div>
 
       <ShareFoodModal 
+
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         userLocation={userLocation}
       />
+
     </div>
   );
 }

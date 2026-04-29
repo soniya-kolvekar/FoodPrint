@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { Camera, Upload, ArrowLeft, Loader2, CheckCircle2, Edit2, Trash, Plus, RotateCw, X, Zap, ZapOff } from "lucide-react";
+import FallingText from "@/components/ui/FallingText";
 
 export default function Scan() {
   const { user, loading } = useAuth();
@@ -396,6 +397,24 @@ export default function Scan() {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* FOOTER */}
+      <footer className="w-full bg-[#1d070c] py-14 px-6 md:px-12 text-[#fffbfa] mt-20 relative z-30 shadow-[0_-20px_50px_rgba(0,0,0,0.15)] overflow-hidden">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[14px] text-[#f9dbbd]/70 font-semibold font-sans">
+           <div className="w-full md:w-2/3">
+              <FallingText 
+                text="© 2026 FoodPrint. Save food, save money, save the planet. 100% Free Web App. No credit card required."
+                trigger="auto"
+                fontSize="14px"
+                backgroundColor="transparent"
+              />
+           </div>
+           <div className="flex gap-6 justify-center md:justify-end w-full md:w-1/3">
+              <span className="hover:text-[#da627d] transition-colors">Privacy</span>
+              <span className="hover:text-[#da627d] transition-colors">Terms</span>
+              <span className="hover:text-[#da627d] transition-colors">Support</span>
+           </div>
+        </div>
+      </footer>
     </div>
   );
 }

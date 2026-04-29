@@ -16,6 +16,7 @@ interface MagicCardBaseProps {
   gradientSize?: number
   gradientFrom?: string
   gradientTo?: string
+  backgroundColor?: string
 }
 
 interface MagicCardGradientProps extends MagicCardBaseProps {
@@ -62,6 +63,7 @@ export function MagicCard(props: MagicCardProps) {
     gradientOpacity = 0.8,
     gradientFrom = "#da627d",
     gradientTo = "#450920",
+    backgroundColor = "#fffbfa",
     mode = "gradient",
   } = props
 
@@ -156,7 +158,7 @@ export function MagicCard(props: MagicCardProps) {
       onPointerEnter={() => reset("enter")}
       style={{
         background: useMotionTemplate`
-          linear-gradient(var(--color-background, #fffbfa) 0 0) padding-box,
+          linear-gradient(${backgroundColor} 0 0) padding-box,
           radial-gradient(${gradientSize}px circle at ${mouseX}px ${mouseY}px,
             ${gradientFrom},
             ${gradientTo},
@@ -165,7 +167,10 @@ export function MagicCard(props: MagicCardProps) {
         `,
       }}
     >
-      <div className="bg-[#fffbfa] absolute inset-px z-20 rounded-[inherit]" />
+      <div 
+        style={{ backgroundColor }} 
+        className="absolute inset-px z-20 rounded-[inherit]" 
+      />
 
       {mode === "gradient" && (
         <motion.div

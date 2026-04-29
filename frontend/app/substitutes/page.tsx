@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Search, Loader2, X, Globe, ChevronDown, CheckCircle2, ChevronRight, Wand2, Share2, Mail, MessageSquare } from "lucide-react";
+import FallingText from "@/components/ui/FallingText";
 
 const complexLogos = [
   "chatandbuild", "Apple", "NETFLIX", "Walmart", "Disney", "Deloitte.", "amazon", "bolt", "replit"
@@ -229,39 +230,23 @@ export default function FoodPrintSubstitutes() {
          </div>
       </main>
 
-      <footer className="w-full bg-white border-t border-apricot-50 pt-[100px] pb-[60px] px-12 relative z-30">
-         <div className="max-w-[1240px] mx-auto grid grid-cols-2 lg:grid-cols-5 gap-20 mb-[100px]">
-            <div className="col-span-2 lg:col-span-2 text-left">
-               <div className="flex items-center gap-2 font-bold text-[36px] tracking-tighter mb-10 italic text-bordeaux-800">
-                 <div className="w-[28px] h-[28px] rounded-sm bg-apricot-500"></div>
-                 FoodPrint
-               </div>
-               <p className="text-bordeaux-300 text-[18px] leading-relaxed max-w-[360px]">Reimagining the bridge between food science and digital intelligence.</p>
-               <div className="flex gap-8 mt-12 text-bordeaux-200">
-                  <Share2 className="hover:text-apricot-500 cursor-pointer transition" size={20} />
-                  <Globe className="hover:text-apricot-500 cursor-pointer transition" size={20} />
-                  <Mail className="hover:text-apricot-500 cursor-pointer transition" size={20} />
-                  <MessageSquare className="hover:text-apricot-500 cursor-pointer transition" size={20} />
-               </div>
-            </div>
-            {['Product', 'Resources', 'Company'].map((col, idx) => (
-              <div key={idx} className="text-left">
-                 <h4 className="font-bold text-[12px] mb-12 text-bordeaux-200 tracking-[0.4em] uppercase">{col}</h4>
-                 <ul className="space-y-6 text-[16px] text-bordeaux-400 font-medium tracking-normal">
-                    <li className="hover:text-apricot-500 cursor-pointer transition">Navigation</li>
-                    <li className="hover:text-apricot-500 cursor-pointer transition">Intelligence</li>
-                    <li className="hover:text-apricot-500 cursor-pointer transition">Molecular</li>
-                 </ul>
-              </div>
-            ))}
-         </div>
-         <div className="max-w-[1240px] mx-auto border-t border-apricot-50 pt-12 flex justify-between items-center opacity-60">
-            <span className="text-[13px] font-bold tracking-widest uppercase text-bordeaux-300">© 2026 FoodPrint. All rights reserved.</span>
-            <div className="flex gap-12 text-[12px] font-bold uppercase tracking-widest text-bordeaux-300">
-               <span className="hover:text-apricot-500 cursor-pointer transition">Privacy Policy</span>
-               <span className="hover:text-apricot-500 cursor-pointer transition">Terms of Service</span>
-            </div>
-         </div>
+      {/* FOOTER */}
+      <footer className="w-full bg-[#1d070c] py-14 px-6 md:px-12 text-[#fffbfa] relative z-30 shadow-[0_-20px_50px_rgba(0,0,0,0.15)] overflow-hidden">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[14px] text-[#f9dbbd]/70 font-semibold font-sans">
+           <div className="w-full md:w-2/3">
+              <FallingText 
+                text="© 2026 FoodPrint. Save food, save money, save the planet. 100% Free Web App. No credit card required."
+                trigger="auto"
+                fontSize="14px"
+                backgroundColor="transparent"
+              />
+           </div>
+           <div className="flex gap-6 justify-center md:justify-end w-full md:w-1/3">
+              <span className="hover:text-[#da627d] transition-colors">Privacy</span>
+              <span className="hover:text-[#da627d] transition-colors">Terms</span>
+              <span className="hover:text-[#da627d] transition-colors">Support</span>
+           </div>
+        </div>
       </footer>
 
       {/* DETAILS MODAL */}

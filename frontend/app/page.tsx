@@ -27,7 +27,7 @@ export default function Home() {
       if (entry.isIntersecting) {
         setTimeout(() => {
           setTriggerFalling('auto');
-        }, 10000);
+        }, 5000);
         observer.disconnect();
       }
     }, { threshold: 0.1 });
