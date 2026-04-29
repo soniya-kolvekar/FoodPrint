@@ -25,7 +25,6 @@
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
-    "@next/swc-win32-x64-msvc": "^16.2.2",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20",
