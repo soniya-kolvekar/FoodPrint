@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.use(protect);
 router.get("/me", userController.getMe);
+router.post("/me", userController.updateMe);
 
 module.exports = router;

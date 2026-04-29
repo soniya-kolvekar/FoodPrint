@@ -11,3 +11,24 @@ exports.getMe = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+exports.updateMe = async (req, res) => {
+  try {
+    const { name, age, bio, gender, culinaryLevel } = req.body;
+    
+    const updatedData = {
+      uid: req.user.uid,
+      email: req.user.email,
+      name: name || "",
+      age: age || "",
+      bio: bio || "",
+      gender: gender || "",
+      culinaryLevel: culinaryLevel !== undefined ? Number(culinaryLevel) : 1
+    };
+
+    await db.collection("users").doc(req.user.uid).set(updatedData, { merge: true });
+    res.status(200).json(updatedData);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
