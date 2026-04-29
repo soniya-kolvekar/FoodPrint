@@ -70,7 +70,8 @@ export const Navbar = () => {
       bgColor: "rgba(255, 255, 255, 0.6)",
       textColor: "#450920",
       links: [
-        { label: "Recipes", href: "/recipes" }
+        { label: "Recipes", href: "/recipes" },
+        { label: "AI Substitute", href: "/substitutes" }
       ]
     },
     {

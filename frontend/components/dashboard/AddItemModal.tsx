@@ -172,10 +172,11 @@ export function AddItemModal({ isOpen, onClose }: AddItemModalProps) {
 
                 {/* Expiry Date */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[#f9dbbd]/70 ml-1">Expiry Date (Optional)</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#f9dbbd]/70 ml-1">Expiry Date</label>
                   <div className="relative">
                     <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 text-[#da627d]" size={18} />
                     <input
+                      required
                       type="date"
                       value={formData.expiry}
                       onChange={(e) => setFormData({ ...formData, expiry: e.target.value })}

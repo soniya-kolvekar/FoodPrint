@@ -135,6 +135,22 @@ const CardNav: React.FC<CardNavProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, [isExpanded]);
 
+  useLayoutEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isExpanded && navRef.current && !navRef.current.contains(event.target as Node)) {
+        const tl = tlRef.current;
+        if (tl) {
+          setIsHamburgerOpen(false);
+          tl.eventCallback('onReverseComplete', () => setIsExpanded(false));
+          tl.reverse();
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isExpanded]);
+
   const toggleMenu = () => {
     const tl = tlRef.current;
     if (!tl) return;

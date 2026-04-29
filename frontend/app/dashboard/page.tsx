@@ -188,6 +188,12 @@ export default function Dashboard() {
                   My <span className="italic font-light text-[#da627d]">Inventory</span>
                </h2>
             </div>
+            <button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-[#450920] text-white hover:bg-[#a53860] px-6 py-3 rounded-[20px] font-black uppercase tracking-widest text-xs flex items-center gap-2 transition-all duration-300 shadow-md hover:scale-[1.02] border-none"
+            >
+              <Plus size={16} /> Add to Dashboard
+            </button>
          </div>
 
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">

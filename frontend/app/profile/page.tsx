@@ -130,7 +130,7 @@ export default function ProfilePage() {
 
       <div className="flex flex-col gap-28">
         {/* Top: User Card */}
-        <div className="w-full max-w-xl mx-auto">
+        <div className="w-full max-w-xl mx-auto -mt-12">
            <div className="flex items-center justify-center mb-8">
               <h2 className="text-[36px] font-black text-[#450920] tracking-tight font-sans">My Profile</h2>
            </div>

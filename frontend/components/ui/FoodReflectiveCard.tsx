@@ -140,6 +140,7 @@ export function FoodReflectiveCard({
         />
 
         {/* Card Media Section */}
+        {/* Card Media Section */}
         <div 
           className="h-48 w-full rounded-2xl overflow-hidden bg-white/10 flex items-center justify-center border border-white/10 relative [transform:translateZ(20px)]"
           style={{
