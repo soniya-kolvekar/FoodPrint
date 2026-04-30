@@ -1,9 +1,16 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Search, Calendar, AlertCircle, ChefHat, CheckCircle2, ChevronRight, LayoutGrid, Flame, Clock, ThermometerSnowflake, X, Upload, Sparkles, Filter, Plus, Save } from "lucide-react";
+import { ArrowLeft, Search, Calendar, AlertCircle, ChefHat, CheckCircle2, ChevronRight, LayoutGrid, Flame, Clock, ThermometerSnowflake, X, Upload, Sparkles, Filter, Plus, Save, Utensils } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { db } from "@/lib/firebase/config";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { Orb } from "@/components/ui/Orb";
+import { MagicCard } from "@/components/ui/MagicCard";
+import { BorderBeam } from "@/components/ui/BorderBeam";
+import GooeyNav from "@/components/ui/GooeyNav";
 
 interface PantryItem {
   id: string;
@@ -12,6 +19,8 @@ interface PantryItem {
   unit: string;
   expiry: string;
   imageUrl?: string;
+  batches?: any[];
+  createdAt?: string;
 }
 
 const PALETTE = {
@@ -22,6 +31,7 @@ const PALETTE = {
 };
 
 export default function ExpiryHeatmap() {
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [items, setItems] = useState<PantryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,28 +44,71 @@ export default function ExpiryHeatmap() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/pantry/items");
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setItems(data);
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
+  const normalize = (str: string) => {
+    if (!str) return "";
+    return str.toLowerCase().trim().replace(/s$/, "");
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    
+    const q = query(collection(db, "pantry", user.uid, "items"), orderBy("createdAt", "desc"));
+    
+    return onSnapshot(q, (snapshot) => {
+      const raw = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+      
+      const merged: PantryItem[] = [];
+      const groups: Record<string, any> = {};
+
+      raw.forEach((item) => {
+        const key = `${normalize(item.name)}|${normalize(item.unit)}`;
+        if (!groups[key]) {
+          groups[key] = { ...item };
+          if (!groups[key].batches) {
+            groups[key].batches = [{ 
+              id: "legacy", 
+              quantity: item.quantity, 
+              expiry: item.expiry, 
+              addedAt: item.createdAt || new Date().toISOString() 
+            }];
+          }
+          merged.push(groups[key]);
         } else {
-          setItems([
-            { id: "1", name: "Fresh Milk", quantity: 1, unit: "Litre", expiry: new Date(Date.now() + 86400000 * 2).toISOString(), imageUrl: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400" },
-            { id: "2", name: "Spinach", quantity: 200, unit: "g", expiry: new Date(Date.now() + 86400000 * 1).toISOString(), imageUrl: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400" },
-            { id: "3", name: "Greek Yogurt", quantity: 500, unit: "g", expiry: new Date(Date.now() + 86400000 * 4).toISOString(), imageUrl: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400" },
-            { id: "4", name: "Avocados", quantity: 3, unit: "pieces", expiry: new Date(Date.now() + 86400000 * 6).toISOString(), imageUrl: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=400" },
-            { id: "5", name: "Eggs", quantity: 12, unit: "pieces", expiry: new Date(Date.now() + 86400000 * 12).toISOString(), imageUrl: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400" },
-            { id: "6", name: "Cherries", quantity: 1, unit: "bag", expiry: new Date(Date.now() + 86400000 * 3).toISOString(), imageUrl: "https://images.unsplash.com/photo-1528821128474-27f963b062bf?w=500&q=80" }
-          ]);
+          const target = groups[key];
+          const batches = item.batches || [{ 
+            id: `dup-${item.id}`, 
+            quantity: item.quantity, 
+            expiry: item.expiry, 
+            addedAt: item.createdAt || new Date().toISOString() 
+          }];
+          target.batches = [...target.batches, ...batches];
+          target.quantity = target.batches.reduce((acc: number, b: any) => acc + b.quantity, 0);
         }
-      } catch (e) { console.error(e); } finally { setLoading(false); }
-    };
-    fetchItems();
-  }, []);
+      });
+
+      setItems(merged);
+      setLoading(false);
+    });
+  }, [user]);
+
+  const getSoonestExpiry = (item: any) => {
+    if (item.batches && item.batches.length > 0) {
+      const expiries = item.batches
+        .map((b: any) => b.expiry)
+        .filter(Boolean)
+        .sort((a: string, b: string) => new Date(a).getTime() - new Date(b).getTime());
+      return expiries[0] || null;
+    }
+    return item.expiry || null;
+  };
 
   const getDaysRemaining = (expiry: string) => {
+    if (!expiry) return 999;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const expiryDate = new Date(expiry);
@@ -73,10 +126,14 @@ export default function ExpiryHeatmap() {
 
   const filteredItems = items
     .filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    .sort((a, b) => getDaysRemaining(a.expiry) - getDaysRemaining(b.expiry));
+    .sort((a, b) => {
+      const daysA = getDaysRemaining(getSoonestExpiry(a));
+      const daysB = getDaysRemaining(getSoonestExpiry(b));
+      return daysA - daysB;
+    });
 
   const handleSuggestRecipe = () => {
-    const atRisk = filteredItems.find(item => getDaysRemaining(item.expiry) <= 3);
+    const atRisk = filteredItems.find(item => getDaysRemaining(getSoonestExpiry(item)) <= 3);
     if (atRisk) {
       router.push(`/recipes?ingredient=${encodeURIComponent(atRisk.name)}`);
     } else {
@@ -118,12 +175,16 @@ export default function ExpiryHeatmap() {
     }, 1500);
   };
 
+  if (authLoading || !user) return null;
+
   return (
     <div className="min-h-screen bg-[#fffbfa] text-[#1d070c] overflow-x-hidden font-sans">
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
         .font-serif { font-family: 'Playfair Display', serif; }
       `}</style>
+
+      <Orb hue={0.94} saturation={0.8} brightness={0.4} />
 
       {/* SUCCESS TOAST */}
       <AnimatePresence>
@@ -210,42 +271,35 @@ export default function ExpiryHeatmap() {
         )}
       </AnimatePresence>
 
-      {/* BACK BUTTON */}
-      <div className="fixed top-10 left-10 z-[110]">
-        <Link href="/dashboard" className="w-14 h-14 rounded-full bg-white backdrop-blur-3xl border border-apricot-100 flex items-center justify-center hover:bg-apricot-50 transition shadow-sm group">
-          <ArrowLeft className="group-hover:-translate-x-1 transition text-bordeaux-800" />
-        </Link>
-      </div>
+      <main className="relative z-10 w-full max-w-[1400px] mx-auto px-10 pt-10 pb-40">
+        {/* NAVIGATION */}
+        <div className="mb-12 flex justify-between items-center">
+          <div className="inline-block bg-white/60 backdrop-blur-md rounded-full border border-[#450920]/10 shadow-sm">
+            <GooeyNav items={[{ label: "← Dashboard", href: "/dashboard" }]} />
+          </div>
+        </div>
 
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden text-[#e98016]">
-        <svg className="w-full h-full opacity-[0.05]" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
-          <motion.circle cx="800" cy="200" r="400" fill="currentColor" animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }} transition={{ duration: 15, repeat: Infinity }} />
-          <motion.circle cx="100" cy="800" r="300" fill="#ee9944" animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }} transition={{ duration: 20, repeat: Infinity }} />
-        </svg>
-      </div>
-
-      <main className="relative z-10 w-full max-w-[1400px] mx-auto px-10 pt-[160px] pb-40">
         <div className="max-w-[700px] mb-24">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <div className="flex items-center gap-4 mb-8">
               <div className="w-12 h-1 bg-gradient-to-r from-apricot-500 to-transparent"></div>
-              <span className="text-[12px] font-bold uppercase tracking-[0.4em] text-bordeaux-300">Systemic Analysis</span>
+              <span className="text-[12px] font-bold uppercase tracking-[0.4em] text-bordeaux-300">Freshness Tracker</span>
             </div>
             <h1 className="text-[72px] font-serif leading-none tracking-tight mb-10 text-bordeaux-800">Expiry <span className="italic font-normal text-apricot-500">Heatmap</span></h1>
             <p className="text-[22px] text-bordeaux-600/50 leading-relaxed font-serif italic max-w-lg">
-              Prioritizing your culinary inventory through thermodynamic urgency data.
+              "Don't let your food become a memory. Track the heat, save the treat."
             </p>
           </motion.div>
         </div>
 
         <div className="flex flex-col xl:flex-row gap-8 mb-20 items-stretch">
           <div className="relative flex-1 group">
-            <div className="absolute inset-0 bg-white rounded-[24px] border border-apricot-100 shadow-sm group-focus-within:border-apricot-500 transition-all duration-500"></div>
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-md rounded-[24px] border border-apricot-100 shadow-sm group-focus-within:border-apricot-500 transition-all duration-500"></div>
             <div className="relative flex items-center px-8 py-7">
               <Search className="text-bordeaux-200 mr-4" size={24} />
               <input
                 type="text"
-                placeholder="Search ingredient database..."
+                placeholder="Search inventory..."
                 className="bg-transparent text-bordeaux-800 outline-none w-full text-[18px] font-medium placeholder:text-bordeaux-200"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -258,7 +312,7 @@ export default function ExpiryHeatmap() {
             <button
               onClick={handleGalleryClick}
               disabled={uploading}
-              className="px-10 rounded-[24px] bg-white border border-apricot-100 hover:bg-apricot-50 transition flex items-center gap-4 text-[14px] font-black uppercase tracking-widest group shadow-sm disabled:opacity-50 min-w-[240px] text-bordeaux-800"
+              className="px-10 rounded-[24px] bg-white/60 backdrop-blur-md border border-apricot-100 hover:bg-white transition flex items-center gap-4 text-[14px] font-black uppercase tracking-widest group shadow-sm disabled:opacity-50 min-w-[240px] text-bordeaux-800"
             >
               {uploading ? (
                 <div className="w-5 h-5 border-2 border-apricot-200 border-t-apricot-500 rounded-full animate-spin"></div>
@@ -289,8 +343,18 @@ export default function ExpiryHeatmap() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
           <AnimatePresence mode="popLayout">
             {!loading && filteredItems.map((item, idx) => {
-              const days = getDaysRemaining(item.expiry);
+              const soonest = getSoonestExpiry(item);
+              const days = getDaysRemaining(soonest);
               const { color, label, glow } = getHeatData(days);
+
+              const cardStyles = [
+                { bg: "#fef2e7", border: "border-[#f9dbbd]", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
+                { bg: "#ffe5e7", border: "border-[#ffa5ab]/60", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
+                { bg: "#fcecee", border: "border-[#da627d]/40", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
+                { bg: "#f9ebf0", border: "border-[#a53860]/40", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
+              ];
+
+              const style = cardStyles[idx % cardStyles.length];
 
               return (
                 <motion.div
@@ -299,40 +363,55 @@ export default function ExpiryHeatmap() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05, duration: 0.6 }}
                   key={item.id}
-                  className="relative group rounded-[48px] overflow-hidden bg-white border border-apricot-100 hover:border-apricot-300 transition-all duration-700 hover:-translate-y-4 shadow-sm hover:shadow-2xl flex flex-col h-[480px]"
+                  className="h-[480px] rounded-[48px] overflow-hidden relative"
                 >
-                  <div className="relative h-64 overflow-hidden bg-apricot-50/20">
-                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover transition duration-[2s] scale-100 group-hover:scale-110 opacity-90" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
-
-                    <div className="absolute top-8 left-8 flex items-center gap-3 px-5 py-2 rounded-full backdrop-blur-md border bg-white/80 border-apricot-100" style={{ boxShadow: `0 0 20px ${glow}` }}>
-                      <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: color }}></div>
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color }}>{label}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-12 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start mb-4">
-                        <h3 className="text-[32px] font-bold tracking-tight text-bordeaux-800 group-hover:text-apricot-500 transition-colors line-clamp-1">{item.name}</h3>
-                        <div className="text-right flex-shrink-0 text-bordeaux-800">
-                          <div className="text-[18px] font-bold">{item.quantity}</div>
-                          <div className="text-[10px] uppercase font-black tracking-widest text-bordeaux-200">{item.unit}</div>
+                  <MagicCard
+                    className={`w-full h-full rounded-[48px] shadow-xl border-2 ${style.border} relative overflow-hidden flex flex-col p-0`}
+                    gradientFrom="#da627d"
+                    gradientTo="#450920"
+                    backgroundColor={style.bg}
+                  >
+                    <BorderBeam size={250} duration={12} colorFrom="#da627d" colorTo="#450920" borderRadius={48} />
+                    
+                    <div className="relative h-64 overflow-hidden bg-white/20">
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover transition duration-[2s] scale-100 group-hover:scale-110 opacity-90" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-apricot-50/30">
+                          <Utensils size={64} className="text-apricot-200" />
                         </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent"></div>
+
+                      <div className="absolute top-8 left-8 flex items-center gap-3 px-5 py-2 rounded-full backdrop-blur-md border bg-white/80 border-apricot-100" style={{ boxShadow: `0 0 20px ${glow}` }}>
+                        <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: color }}></div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color }}>{label}</span>
                       </div>
-                      <p className="text-bordeaux-300 text-[14px] font-medium leading-relaxed italic font-serif">Stored in Main Containment Unit</p>
                     </div>
 
-                    <div className="pt-8 border-t border-apricot-50 flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] uppercase font-black tracking-widest text-bordeaux-200 mb-1">Time Remaining</span>
-                        <span className="text-[18px] font-bold" style={{ color }}>{days <= 0 ? "Expired" : `${days} Earth Days`}</span>
+                    <div className="p-10 flex-1 flex flex-col justify-between relative z-10">
+                      <div>
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="text-[28px] font-black tracking-tight text-[#450920] line-clamp-1">{item.name}</h3>
+                          <div className="text-right flex-shrink-0 text-[#450920]">
+                            <div className="text-[16px] font-black">{item.quantity}</div>
+                            <div className="text-[9px] uppercase font-black tracking-widest text-[#a53860]/60">{item.unit}</div>
+                          </div>
+                        </div>
+                        <p className={`text-[13px] ${style.textMuted} font-semibold italic font-serif`}>Added on {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}</p>
                       </div>
-                      <button className="w-14 h-14 rounded-2xl bg-apricot-50 border border-apricot-100 flex items-center justify-center hover:bg-apricot-500 transition group/btn shadow-sm">
-                        <ChevronRight size={24} className="group-hover/btn:translate-x-1 transition text-apricot-300 group-hover:text-white" />
-                      </button>
+
+                      <div className="pt-6 border-t border-black/5 flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] uppercase font-black tracking-widest text-[#a53860]/60 mb-1">Time Remaining</span>
+                          <span className="text-[18px] font-black" style={{ color }}>{days <= 0 ? "Expired" : `${days} Earth Days`}</span>
+                        </div>
+                        <button className="w-12 h-12 rounded-2xl bg-white/60 border border-black/5 flex items-center justify-center hover:bg-[#450920] transition group/btn shadow-sm">
+                          <ChevronRight size={20} className="group-hover/btn:translate-x-1 transition text-[#a53860] group-hover:text-white" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  </MagicCard>
                 </motion.div>
               );
             })}
@@ -349,17 +428,17 @@ export default function ExpiryHeatmap() {
         )}
       </main>
 
-      <footer className="w-full border-t border-apricot-100 py-24 px-12 relative z-30 overflow-hidden bg-white/50">
-        <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row justify-between items-center gap-12 relative z-10">
-          <div className="flex items-center gap-3 font-bold text-[36px] tracking-tighter italic text-bordeaux-800">
-            <div className="w-[24px] h-[24px] rounded-md bg-apricot-500"></div>
-            FoodPrint
-          </div>
-          <div className="flex gap-20 text-[11px] font-black uppercase tracking-[0.4em] text-bordeaux-300">
-            <span className="hover:text-apricot-500 cursor-pointer transition">Containment Protocols</span>
-            <span className="hover:text-apricot-500 cursor-pointer transition">Thermal Standards</span>
-            <span className="hover:text-apricot-500 cursor-pointer transition">Privacy Neural</span>
-          </div>
+      {/* FOOTER */}
+      <footer className="w-full bg-[#1d070c] py-14 px-6 md:px-12 text-[#fffbfa] mt-auto relative z-30 shadow-[0_-20px_50px_rgba(0,0,0,0.15)] overflow-hidden">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[14px] text-[#f9dbbd]/70 font-semibold font-sans">
+           <div className="w-full md:w-2/3">
+              <span>© 2026 FoodPrint. Save food, save money, save the planet. 100% Free Web App. No credit card required.</span>
+           </div>
+           <div className="flex gap-6 justify-center md:justify-end w-full md:w-1/3">
+              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Privacy</span>
+              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Terms</span>
+              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Support</span>
+           </div>
         </div>
       </footer>
     </div>
