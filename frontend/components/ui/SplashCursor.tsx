@@ -924,7 +924,7 @@ function SplashCursor({
                 const r = parseFloat(rgbaMatch[1]) / 255;
                 const g = parseFloat(rgbaMatch[2]) / 255;
                 const b = parseFloat(rgbaMatch[3]) / 255;
-                return { r: r * 0.15, g: g * 0.15, b: b * 0.15 };
+                return { r: r * 1.0, g: g * 1.0, b: b * 1.0 };
             }
             // Handle hex format
             let val = hex.replace('#', '');
@@ -932,7 +932,7 @@ function SplashCursor({
             const r = parseInt(val.slice(0, 2), 16) / 255;
             const g = parseInt(val.slice(2, 4), 16) / 255;
             const b = parseInt(val.slice(4, 6), 16) / 255;
-            return { r: r * 0.15, g: g * 0.15, b: b * 0.15 };
+            return { r: r * 1.0, g: g * 1.0, b: b * 1.0 };
         }
 
         function generateColor() {
@@ -940,9 +940,9 @@ function SplashCursor({
                 return hexToRGB(config.COLOR);
             }
             let c = HSVtoRGB(Math.random(), 1.0, 1.0);
-            c.r *= 0.15;
-            c.g *= 0.15;
-            c.b *= 0.15;
+            c.r *= 1.0;
+            c.g *= 1.0;
+            c.b *= 1.0;
             return c;
         }
 

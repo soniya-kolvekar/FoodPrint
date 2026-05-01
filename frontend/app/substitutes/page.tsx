@@ -140,7 +140,7 @@ export default function FoodPrintSubstitutes() {
           className="text-[60px] md:text-[84px] font-serif leading-[1.05] tracking-tight mb-[30px] max-w-[1100px] text-bordeaux-800"
           initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
         >
-          AI with an Eye for <span className="text-apricot-500">Ingredients</span>
+          AI with an Eye for <span className="text-[#da627d]">Ingredients</span>
         </motion.h1>
 
         <motion.p
@@ -166,7 +166,7 @@ export default function FoodPrintSubstitutes() {
               className="w-full h-24 bg-transparent text-bordeaux-800 text-[19px] outline-none resize-none placeholder:text-bordeaux-200 font-medium"
             />
             <div className="flex items-center justify-end w-full mt-auto">
-              <button disabled={loading || !ingredient.trim()} className="w-[48px] h-[40px] rounded-[10px] bg-apricot-500 flex items-center justify-center text-white hover:bg-[#fffbfa] hover:text-[#450920] transition active:scale-95 shadow-md">
+              <button disabled={loading || !ingredient.trim()} className="w-[48px] h-[40px] rounded-[10px] bg-[#da627d] flex items-center justify-center text-white hover:bg-[#cf3053] active:bg-[#450920] transition-all active:scale-95 shadow-md shadow-[#da627d]/40 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
                 {loading ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={20} />}
               </button>
             </div>
@@ -262,7 +262,7 @@ export default function FoodPrintSubstitutes() {
                 </div>
                 <h2 className={`text-4xl md:text-5xl font-black mb-8 leading-[1.1] tracking-tight text-[#450920] ${robotoFlex.className}`}>{selectedSub.name}</h2>
                 <p className="text-[17px] text-[#a53860]/80 leading-relaxed font-semibold italic mb-10">{selectedSub.preparation || "Ideal culinary replacement discovered by Agent Intelligence."}</p>
-                <button className="w-full py-5 rounded-[18px] bg-apricot-500 text-white font-black text-[15px] hover:bg-[#450920] transition shadow-lg tracking-[0.3em] uppercase active:scale-95">Integrate Suggestion</button>
+                <button className="w-full h-16 text-[18px] font-black rounded-[24px] shadow-2xl shadow-[#da627d]/30 bg-gradient-to-r from-[#da627d] via-[#a53860] to-[#450920] border-0 text-white hover:scale-[1.02] transition-all tracking-[0.2em] uppercase active:scale-95">Integrate Suggestion</button>
               </div>
             </motion.div>
           </motion.div>
