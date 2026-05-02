@@ -212,7 +212,7 @@ export default function MagicRings({
         let frameId: number;
         const animate = (t: number) => {
             frameId = requestAnimationFrame(animate);
-            const p = propsRef.current!;
+            const p = propsRef.current as Required<MagicRingsProps>;
 
             smoothMouseRef.current[0] += (mouseRef.current[0] - smoothMouseRef.current[0]) * 0.08;
             smoothMouseRef.current[1] += (mouseRef.current[1] - smoothMouseRef.current[1]) * 0.08;

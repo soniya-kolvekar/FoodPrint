@@ -9,6 +9,7 @@ import TiltedCard from "@/components/ui/TiltedCard";
 import { IconCloud } from "@/components/ui/IconCloud";
 import SplashCursor from "@/components/ui/SplashCursor";
 import { BorderBeam } from "@/components/ui/BorderBeam";
+import Orbit from "@/components/ui/Orbit";
 import FallingText from "@/components/ui/FallingText";
 import MagicRings from "@/components/ui/MagicRings";
 
@@ -22,6 +23,22 @@ export default function FoodPrintSubstitutes() {
   const [searched, setSearched] = useState(false);
   const [placeholderValue, setPlaceholderValue] = useState("");
   const [selectedSub, setSelectedSub] = useState<any | null>(null);
+  const [orbitImages, setOrbitImages] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchUnsplashImages = async () => {
+      try {
+        const res = await fetch("https://api.unsplash.com/photos/random?query=food&count=10&client_id=CeUUU5iaAbJGyZOmom9tqDzDKaf9Yt4DYRqRvPDtVqY");
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setOrbitImages(data.map((img: any) => img.urls.small));
+        }
+      } catch (err) {
+        console.error("Failed to fetch unsplash images:", err);
+      }
+    };
+    fetchUnsplashImages();
+  }, []);
 
   const placeholders = [
     "What can I use instead of buttermilk?",
@@ -111,8 +128,8 @@ export default function FoodPrintSubstitutes() {
       {/* ======================= BACKGROUND ANIMATION ======================= */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <MagicRings
-          color="#8b1e3f"
-          colorTwo="#c67e3a"
+          color="#cf3053"
+          colorTwo="#cf3053"
           ringCount={10}
           speed={1.5}
           attenuation={15}
@@ -135,7 +152,7 @@ export default function FoodPrintSubstitutes() {
         />
       </div>
 
-      <main className="relative z-10 w-full max-w-[1240px] mx-auto px-6 flex flex-col items-center text-center pt-[100px] pb-40">
+      <main className="relative z-10 w-full max-w-[1240px] mx-auto px-6 flex flex-col items-center text-center pt-[100px] pb-0">
         <motion.h1
           className="text-[60px] md:text-[84px] font-serif leading-[1.05] tracking-tight mb-[30px] max-w-[1100px] text-bordeaux-800"
           initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
@@ -153,7 +170,7 @@ export default function FoodPrintSubstitutes() {
 
         {/* PROMPT BOX */}
         <motion.div
-          className="w-full max-w-[840px] mx-auto relative group mb-[90px]"
+          className="w-full max-w-[840px] mx-auto relative group mb-2"
           initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.4 }}
         >
           <div className="absolute -inset-[1px] rounded-[20px] bg-apricot-500/10 opacity-20 group-hover:opacity-40 transition duration-700 blur-[1px]"></div>
@@ -173,6 +190,34 @@ export default function FoodPrintSubstitutes() {
             <BorderBeam duration={8} size={150} colorFrom="#f9dbbd" colorTo="#cf3053" />
           </form>
         </motion.div>
+
+        {/* ORBIT ANIMATION */}
+        {!searched && !loading && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.6, duration: 1 }} 
+            className="w-full flex justify-center mt-[-60px] mb-[-40px]"
+          >
+             <Orbit 
+               images={orbitImages.length > 0 ? orbitImages : [
+                 "https://images.unsplash.com/photo-1596422846543-7dc3defc1d76?w=200&h=200&fit=crop", 
+                 "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=200&h=200&fit=crop", 
+                 "https://images.unsplash.com/photo-1587049352847-4d4b126a3121?w=200&h=200&fit=crop", 
+                 "https://images.unsplash.com/photo-1577905187768-3e4b7c152a5c?w=200&h=200&fit=crop", 
+                 "https://images.unsplash.com/photo-1615486171448-4fbaf0115049?w=200&h=200&fit=crop", 
+                 "https://images.unsplash.com/photo-1587314168485-3236d6710814?w=200&h=200&fit=crop", 
+                 "https://images.unsplash.com/photo-1582979512210-99b6a53386f9?w=200&h=200&fit=crop", 
+                 "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=200&h=200&fit=crop", 
+                 "https://images.unsplash.com/photo-1540148426945-044120fdb4c3?w=200&h=200&fit=crop", 
+                 "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=200&h=200&fit=crop"  
+               ]}
+               radius={350}
+               duration={40}
+               iconSize={72}
+            />
+          </motion.div>
+        )}
 
 
         {/* RESULTS SECTION */}
@@ -235,14 +280,14 @@ export default function FoodPrintSubstitutes() {
       {/* FOOTER */}
       <footer className="w-full bg-[#1d070c] py-14 px-6 md:px-12 text-[#fffbfa] mt-auto relative z-30 shadow-[0_-20px_50px_rgba(0,0,0,0.15)] overflow-hidden">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[14px] text-[#f9dbbd]/70 font-semibold font-sans">
-           <div className="w-full md:w-2/3">
-              <span>© 2026 FoodPrint. Save food, save money, save the planet. 100% Free Web App. No credit card required.</span>
-           </div>
-           <div className="flex gap-6 justify-center md:justify-end w-full md:w-1/3">
-              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Privacy</span>
-              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Terms</span>
-              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Support</span>
-           </div>
+          <div className="w-full md:w-2/3">
+            <span>© 2026 FoodPrint. Save food, save money, save the planet. 100% Free Web App. No credit card required.</span>
+          </div>
+          <div className="flex gap-6 justify-center md:justify-end w-full md:w-1/3">
+            <span className="hover:text-[#da627d] transition-colors cursor-pointer">Privacy</span>
+            <span className="hover:text-[#da627d] transition-colors cursor-pointer">Terms</span>
+            <span className="hover:text-[#da627d] transition-colors cursor-pointer">Support</span>
+          </div>
         </div>
       </footer>
 
@@ -252,8 +297,10 @@ export default function FoodPrintSubstitutes() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-[#450920]/20 backdrop-blur-md">
             <motion.div initial={{ scale: 0.94, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.94, y: 40 }} className="w-full max-w-[800px] bg-white rounded-[40px] overflow-hidden border border-apricot-100 shadow-2xl flex flex-col md:flex-row relative">
               <button onClick={() => setSelectedSub(null)} className="absolute top-8 right-8 w-11 h-11 rounded-full bg-apricot-50 flex items-center justify-center text-[#a53860] hover:text-[#450920] transition z-10 border border-apricot-100"><X size={22} /></button>
-              <div className="w-full md:w-1/2 h-[450px] relative">
-                <img src={selectedSub.image} alt={selectedSub.name} className="w-full h-full object-cover" />
+              <div className="w-full md:w-1/2 p-10 flex items-center justify-center relative bg-[#f9dbbd]/20 border-b md:border-b-0 md:border-r border-apricot-100">
+                <div className="w-full aspect-square rounded-[32px] overflow-hidden border-4 border-white shadow-xl relative">
+                  <img src={selectedSub.image} alt={selectedSub.name} className="absolute inset-0 w-full h-full object-cover" />
+                </div>
               </div>
               <div className="p-10 md:p-14 flex-1 flex flex-col justify-center text-left">
                 <div className="flex items-center gap-3 text-apricot-500 mb-6 uppercase text-[11px] font-black tracking-[0.4em]">

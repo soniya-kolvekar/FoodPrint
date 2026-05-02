@@ -12,6 +12,7 @@ import SpotlightCard from "@/components/ui/SpotlightCard";
 import { BorderBeam } from "@/components/ui/BorderBeam";
 import { MagicCard } from "@/components/ui/MagicCard";
 import TiltedCard from "@/components/ui/TiltedCard";
+import SoftAurora from "@/components/ui/SoftAurora";
 
 export default function Scan() {
   const { user, loading } = useAuth();
@@ -216,9 +217,16 @@ export default function Scan() {
   return (
     <div className="min-h-screen bg-[#fffbfa] text-[#450920] relative overflow-x-hidden font-sans flex flex-col selection:bg-[#da627d]/20">
       {/* BACKGROUND DECORATION */}
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.3]">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#ffa5ab]/20 rounded-full blur-[200px] -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#f9dbbd]/30 rounded-full blur-[180px] translate-y-1/2 -translate-x-1/2"></div>
+      <div className="fixed left-0 right-0 bottom-0 h-[80vh] z-0 pointer-events-none opacity-[0.4]" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 25%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 25%)' }}>
+        <SoftAurora
+          color1="#da627d"
+          color2="#f9dbbd"
+          speed={0.8}
+          scale={1.5}
+          brightness={1.2}
+          bandSpread={1.5}
+          octaveDecay={0.2}
+        />
       </div>
 
       <main className="flex-grow w-full max-w-5xl mx-auto px-6 pt-6 pb-32 relative z-10 flex flex-col items-center">

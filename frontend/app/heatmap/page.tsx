@@ -8,7 +8,8 @@ import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import GooeyNav from "@/components/ui/GooeyNav";
 import { MagicCard } from "@/components/ui/MagicCard";
 import { BorderBeam } from "@/components/ui/BorderBeam";
-import { ChevronRight, Utensils, Search } from "lucide-react";
+import LightRays from "@/components/ui/LightRays";
+import { ChevronRight, Utensils, Search, X } from "lucide-react";
 
 interface PantryItem {
   id: string;
@@ -160,27 +161,109 @@ export default function ExpiryHeatmap() {
   };
 
   const filteredItems = items.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    if (selectedDate) {
-      const soonest = getSoonestExpiry(item);
-      if (!soonest) return false;
-      const expDate = new Date(soonest);
-      expDate.setHours(0, 0, 0, 0);
-      return matchesSearch && expDate.getTime() === selectedDate.getTime();
-    }
-    
-    return matchesSearch;
+    return item.name.toLowerCase().includes(searchQuery.toLowerCase());
   }).sort((a, b) => {
     const daysA = getDaysRemaining(getSoonestExpiry(a));
     const daysB = getDaysRemaining(getSoonestExpiry(b));
     return daysA - daysB;
   });
 
-  if (authLoading || !user) return <div className="min-h-screen bg-[#fffbfa]"></div>;
+  const modalItems = selectedDate ? items.filter(item => {
+    const soonest = getSoonestExpiry(item);
+    if (!soonest) return false;
+    const expDate = new Date(soonest);
+    expDate.setHours(0, 0, 0, 0);
+    return expDate.getTime() === selectedDate.getTime();
+  }) : [];
+
+  const renderItemCard = (item: any, idx: number) => {
+    const soonest = getSoonestExpiry(item);
+    const days = getDaysRemaining(soonest);
+    const { color, label, glow } = getHeatData(days);
+
+    const cardStyles = [
+      { bg: "#fef2e7", border: "border-[#f9dbbd]", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
+      { bg: "#ffe5e7", border: "border-[#ffa5ab]/60", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
+      { bg: "#fcecee", border: "border-[#da627d]/40", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
+      { bg: "#f9ebf0", border: "border-[#a53860]/40", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
+    ];
+
+    const style = cardStyles[idx % cardStyles.length];
+
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: (idx % 10) * 0.05, duration: 0.6 }}
+        key={item.id}
+        className="h-[480px] rounded-[48px] overflow-hidden relative"
+      >
+        <MagicCard
+          className={`w-full h-full rounded-[48px] shadow-xl border-2 ${style.border} relative overflow-hidden flex flex-col p-0`}
+          gradientFrom="#da627d"
+          gradientTo="#450920"
+          backgroundColor={style.bg}
+        >
+          <BorderBeam size={250} duration={12} colorFrom="#da627d" colorTo="#450920" borderRadius={48} />
+          
+          <div className="relative h-64 overflow-hidden bg-white/20">
+            {item.imageUrl ? (
+              <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover transition duration-[2s] scale-100 group-hover:scale-110 opacity-90" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-apricot-50/30">
+                <Utensils size={64} className="text-apricot-200" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent"></div>
+
+            <div className="absolute top-8 left-8 flex items-center gap-3 px-5 py-2 rounded-full backdrop-blur-md border bg-white/80 border-apricot-100" style={{ boxShadow: `0 0 20px ${glow}` }}>
+              <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: color }}></div>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color }}>{label}</span>
+            </div>
+          </div>
+
+          <div className="p-10 flex-1 flex flex-col justify-between relative z-10 text-left">
+            <div>
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-[28px] font-black tracking-tight text-[#450920] line-clamp-1">{item.name}</h3>
+                <div className="text-right flex-shrink-0 text-[#450920]">
+                  <div className="text-[16px] font-black">{item.quantity}</div>
+                  <div className="text-[9px] uppercase font-black tracking-widest text-[#a53860]/60">{item.unit}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-black/5 flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-[9px] uppercase font-black tracking-widest text-[#a53860]/60 mb-1">Time Remaining</span>
+                <span className="text-[18px] font-black" style={{ color }}>{days <= 0 ? "Expired" : `${days} Earth Days`}</span>
+              </div>
+              <button className="w-12 h-12 rounded-2xl bg-white/60 border border-black/5 flex items-center justify-center hover:bg-[#450920] transition group/btn shadow-sm">
+                <ChevronRight size={20} className="group-hover/btn:translate-x-1 transition text-[#a53860] group-hover:text-white" />
+              </button>
+            </div>
+          </div>
+        </MagicCard>
+      </motion.div>
+    );
+  };
+
+
 
   return (
-    <div className="min-h-screen bg-[#fffbfa] text-[#1d070c] overflow-x-hidden font-sans relative">
+    <div className="min-h-screen bg-blush-50 text-bordeaux-950 relative overflow-x-hidden font-sans selection:bg-apricot-200/40 -mt-28 pt-28">
+      <LightRays
+        raysOrigin="top-center"
+        raysColor="#cf3053"
+        raysSpeed={2}
+        lightSpread={1.5}
+        rayLength={3}
+        pulsating={true}
+        fadeDistance={0.8}
+        saturation={2.5}
+        className="opacity-100"
+      />
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
         .font-serif { font-family: 'Playfair Display', serif; }
@@ -240,132 +323,119 @@ export default function ExpiryHeatmap() {
            </div>
         </motion.div>
 
-        {/* SEARCH AND ITEMS - ONLY SHOWN WHEN A DATE IS SELECTED */}
+        {/* MODAL FOR SELECTED DATE */}
         <AnimatePresence>
           {selectedDate && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="w-full"
-            >
-              {/* LEGEND */}
-              <div className="flex flex-wrap gap-8 justify-center mb-12 px-2 overflow-x-auto scrollbar-hide max-w-[1100px] mx-auto">
-                {Object.entries(PALETTE).map(([key, color]) => (
-                  <div key={key} className="flex items-center gap-3 whitespace-nowrap">
-                    <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }}></div>
-                    <span className="text-[11px] font-bold uppercase tracking-widest text-bordeaux-300">{key} Zone</span>
-                  </div>
-                ))}
-              </div>
-              {/* SEARCH BAR */}
-              <div className="mb-12 max-w-[1100px] mx-auto w-full">
-                <div className="relative flex-1 group">
-                  <div className="absolute inset-0 bg-white/60 backdrop-blur-md rounded-[24px] border border-apricot-100 shadow-sm group-focus-within:border-apricot-500 transition-all duration-500"></div>
-                  <div className="relative flex items-center px-8 py-7">
-                    <Search className="text-bordeaux-200 mr-4" size={24} />
-                    <input
-                      type="text"
-                      placeholder={`Search items expiring on ${selectedDate.toLocaleDateString()}...`}
-                      className="bg-transparent text-bordeaux-800 outline-none w-full text-[18px] font-medium placeholder:text-bordeaux-200"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedDate(null)}
+                className="fixed inset-0 bg-black/60 backdrop-blur-md z-[110]"
+              />
+              <div className="fixed inset-0 flex items-center justify-center p-4 z-[120] pointer-events-none font-sans">
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                  className="bg-[#450920]/90 backdrop-blur-3xl w-full max-w-sm rounded-[40px] shadow-2xl overflow-hidden pointer-events-auto border border-white/10 text-[#fffbfa]"
+                >
+                  <div className="p-10 text-[#fffbfa]">
+                    <div className="flex justify-between items-start mb-8">
+                      <div>
+                        <h3 className="text-[32px] font-black mb-1 leading-none font-sans">
+                          {selectedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </h3>
+                        <p className="text-[#f9dbbd]/70 text-[12px] font-bold uppercase tracking-widest">Expiring Items</p>
+                      </div>
+                      <button onClick={() => setSelectedDate(null)} className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-[#fffbfa]/70 hover:text-[#fffbfa] transition border border-white/10">
+                        <X size={20} />
+                      </button>
+                    </div>
 
-              {/* ITEMS DISPLAY */}
-              <div className="w-full max-w-[1240px] mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-                  <AnimatePresence mode="popLayout">
-                    {!loading && filteredItems.map((item, idx) => {
-                      const soonest = getSoonestExpiry(item);
-                      const days = getDaysRemaining(soonest);
-                      const { color, label, glow } = getHeatData(days);
-
-                      const cardStyles = [
-                        { bg: "#fef2e7", border: "border-[#f9dbbd]", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
-                        { bg: "#ffe5e7", border: "border-[#ffa5ab]/60", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
-                        { bg: "#fcecee", border: "border-[#da627d]/40", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
-                        { bg: "#f9ebf0", border: "border-[#a53860]/40", text: "text-[#450920]", textMuted: "text-[#a53860]/80" },
-                      ];
-
-                      const style = cardStyles[idx % cardStyles.length];
-
-                      return (
-                        <motion.div
-                          layout
-                          initial={{ opacity: 0, y: 40 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.05, duration: 0.6 }}
-                          key={item.id}
-                          className="h-[480px] rounded-[48px] overflow-hidden relative"
-                        >
-                          <MagicCard
-                            className={`w-full h-full rounded-[48px] shadow-xl border-2 ${style.border} relative overflow-hidden flex flex-col p-0`}
-                            gradientFrom="#da627d"
-                            gradientTo="#450920"
-                            backgroundColor={style.bg}
-                          >
-                            <BorderBeam size={250} duration={12} colorFrom="#da627d" colorTo="#450920" borderRadius={48} />
-                            
-                            <div className="relative h-64 overflow-hidden bg-white/20">
-                              {item.imageUrl ? (
-                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover transition duration-[2s] scale-100 group-hover:scale-110 opacity-90" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-apricot-50/30">
-                                  <Utensils size={64} className="text-apricot-200" />
-                                </div>
-                              )}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent"></div>
-
-                              <div className="absolute top-8 left-8 flex items-center gap-3 px-5 py-2 rounded-full backdrop-blur-md border bg-white/80 border-apricot-100" style={{ boxShadow: `0 0 20px ${glow}` }}>
-                                <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: color }}></div>
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color }}>{label}</span>
+                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
+                      {modalItems.map((item, idx) => (
+                        <div key={item.id} className="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/10 hover:border-white/20 transition group">
+                          <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center text-[#da627d] border border-white/10 group-hover:bg-[#da627d] group-hover:text-white transition-colors overflow-hidden relative flex-shrink-0">
+                               {item.imageUrl ? <img src={item.imageUrl} className="w-full h-full object-cover" alt={item.name} /> : <Utensils size={22} />}
+                            </div>
+                            <div>
+                              <p className="text-[18px] font-bold text-[#fffbfa] capitalize line-clamp-1">{item.name}</p>
+                              <div className="flex items-center text-[10px] font-bold uppercase tracking-widest text-[#fffbfa]/40">
+                                {item.quantity} {item.unit}
                               </div>
                             </div>
+                          </div>
+                        </div>
+                      ))}
 
-                            <div className="p-10 flex-1 flex flex-col justify-between relative z-10 text-left">
-                              <div>
-                                <div className="flex justify-between items-start mb-4">
-                                  <h3 className="text-[28px] font-black tracking-tight text-[#450920] line-clamp-1">{item.name}</h3>
-                                  <div className="text-right flex-shrink-0 text-[#450920]">
-                                    <div className="text-[16px] font-black">{item.quantity}</div>
-                                    <div className="text-[9px] uppercase font-black tracking-widest text-[#a53860]/60">{item.unit}</div>
-                                  </div>
-                                </div>
-                                <p className={`text-[13px] ${style.textMuted} font-semibold italic font-serif`}>Added on {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}</p>
-                              </div>
-
-                              <div className="pt-6 border-t border-black/5 flex items-center justify-between">
-                                <div className="flex flex-col">
-                                  <span className="text-[9px] uppercase font-black tracking-widest text-[#a53860]/60 mb-1">Time Remaining</span>
-                                  <span className="text-[18px] font-black" style={{ color }}>{days <= 0 ? "Expired" : `${days} Earth Days`}</span>
-                                </div>
-                                <button className="w-12 h-12 rounded-2xl bg-white/60 border border-black/5 flex items-center justify-center hover:bg-[#450920] transition group/btn shadow-sm">
-                                  <ChevronRight size={20} className="group-hover/btn:translate-x-1 transition text-[#a53860] group-hover:text-white" />
-                                </button>
-                              </div>
-                            </div>
-                          </MagicCard>
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
-                </div>
-
-                {!loading && filteredItems.length === 0 && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-20 flex flex-col items-center w-full">
-                    <p className="text-[24px] font-serif italic text-bordeaux-300 text-center">
-                      No items expiring on {selectedDate.toLocaleDateString()}.
-                    </p>
-                  </motion.div>
-                )}
+                      {!modalItems.length && (
+                        <div className="text-center py-12">
+                           <p className="text-[#fffbfa]/40 italic font-sans">No items expiring on this date.</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="mt-10 pt-8 border-t border-white/10 flex flex-col items-center">
+                      <p className="text-[10px] text-center text-[#fffbfa]/40 font-bold uppercase tracking-widest mb-6">
+                        Items requiring immediate attention
+                      </p>
+                      <button onClick={() => setSelectedDate(null)} className="w-full py-5 bg-[#da627d] text-white rounded-2xl font-black uppercase tracking-widest text-[12px] hover:bg-[#cf3053] transition shadow-lg">
+                        Close Summary
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
-            </motion.div>
+            </>
           )}
         </AnimatePresence>
+
+        {/* LEGEND */}
+        <div className="flex flex-wrap gap-8 justify-center mb-12 px-2 overflow-x-auto scrollbar-hide max-w-[1100px] mx-auto relative z-10">
+          {Object.entries(PALETTE).filter(([key]) => key !== 'stable').map(([key, color]) => (
+            <div key={key} className="flex items-center gap-3 whitespace-nowrap">
+              <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }}></div>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-bordeaux-300">{key} Zone</span>
+            </div>
+          ))}
+        </div>
+
+        {/* SEARCH BAR (Always visible) */}
+        <div className="mb-12 max-w-[1100px] mx-auto w-full relative z-10">
+          <div className="relative flex-1 group">
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-md rounded-[24px] border border-apricot-100 shadow-sm group-focus-within:border-apricot-500 transition-all duration-500"></div>
+            <div className="relative flex items-center px-8 py-7">
+              <Search className="text-bordeaux-200 mr-4" size={24} />
+              <input
+                type="text"
+                placeholder="Search your pantry items..."
+                className="bg-transparent text-bordeaux-800 outline-none w-full text-[18px] font-medium placeholder:text-bordeaux-200"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ITEMS DISPLAY (Always visible) */}
+        <div className="w-full max-w-[1240px] mx-auto relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+            <AnimatePresence mode="popLayout">
+              {!loading && filteredItems.map((item, idx) => renderItemCard(item, idx))}
+            </AnimatePresence>
+          </div>
+
+          {!loading && filteredItems.length === 0 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-20 flex flex-col items-center w-full">
+              <p className="text-[24px] font-serif italic text-bordeaux-300 text-center">
+                No items found.
+              </p>
+            </motion.div>
+          )}
+        </div>
       </main>
       
       <footer className="w-full bg-[#1d070c] py-14 px-6 md:px-12 text-[#fffbfa] mt-auto relative z-30 shadow-[0_-20px_50px_rgba(0,0,0,0.15)] overflow-hidden">

@@ -379,7 +379,7 @@ export default function Home() {
                         <span className="fall-item inline-block text-[#da627d] font-bold text-base uppercase tracking-widest mb-4">Main</span>
                         <Link href="/" className="fall-item inline-block hover:text-[#f9dbbd] transition-colors mb-1.5 text-[15px] font-semibold">Home</Link>
                         <Link href="/dashboard" className="fall-item inline-block hover:text-[#f9dbbd] transition-colors mb-1.5 text-[15px] font-semibold">Dashboard</Link>
-                        <Link href="/expiry-heatmap" className="fall-item inline-block hover:text-[#f9dbbd] transition-colors mb-1.5 text-[15px] font-semibold">Pantry Analysis</Link>
+                        <Link href="/heatmap" className="fall-item inline-block hover:text-[#f9dbbd] transition-colors mb-1.5 text-[15px] font-semibold">Expiry Heatmap</Link>
                      </div>
                      <div className="flex flex-col text-left items-start">
                         <span className="fall-item inline-block text-[#da627d] font-bold text-base uppercase tracking-widest mb-4">Cooking</span>

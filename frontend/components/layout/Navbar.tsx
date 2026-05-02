@@ -62,7 +62,7 @@ export const Navbar = () => {
       textColor: "#450920",
       links: [
         { label: "Dashboard", href: "/dashboard" },
-        { label: "Pantry Analysis", href: "/expiry-heatmap" }
+        { label: "Expiry Heatmap", href: "/heatmap" }
       ]
     },
     {
