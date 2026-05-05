@@ -3,11 +3,16 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
-import { Camera, Upload, ArrowLeft, Loader2, CheckCircle2, Edit2, Trash, Plus, RotateCw, X, Zap, ZapOff } from "lucide-react";
+import { Camera, Upload, Loader2, CheckCircle2, Trash, Plus, RotateCw, X, Zap, ZapOff, Sparkles } from "lucide-react";
 import FallingText from "@/components/ui/FallingText";
+import GooeyNav from "@/components/ui/GooeyNav";
+import SpotlightCard from "@/components/ui/SpotlightCard";
+import { BorderBeam } from "@/components/ui/BorderBeam";
+import { MagicCard } from "@/components/ui/MagicCard";
+import TiltedCard from "@/components/ui/TiltedCard";
+import SoftAurora from "@/components/ui/SoftAurora";
 
 export default function Scan() {
   const { user, loading } = useAuth();
@@ -210,17 +215,33 @@ export default function Scan() {
   if (loading || !user) return <div className="min-h-screen flex items-center justify-center font-medium text-gray-500">Authenticating...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8 text-center flex flex-col items-center min-h-[80vh] justify-center relative">
-      <div className="absolute top-8 left-6 z-10">
-        <Link href="/" className="inline-flex items-center text-sm font-bold text-gray-500 hover:text-[#ff6670] transition-colors bg-white/50 px-4 py-2 rounded-full border border-gray-200 shadow-sm">
-          <ArrowLeft size={16} className="mr-2" /> Back to Home
-        </Link>
+    <div className="min-h-screen bg-[#fffbfa] text-[#450920] relative overflow-x-hidden font-sans flex flex-col selection:bg-[#da627d]/20">
+      {/* BACKGROUND DECORATION */}
+      <div className="fixed left-0 right-0 bottom-0 h-[80vh] z-0 pointer-events-none opacity-[0.4]" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 25%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 25%)' }}>
+        <SoftAurora
+          color1="#da627d"
+          color2="#f9dbbd"
+          speed={0.8}
+          scale={1.5}
+          brightness={1.2}
+          bandSpread={1.5}
+          octaveDecay={0.2}
+        />
       </div>
-      
-      <h1 className="text-4xl font-bold text-bordeaux-800 mb-4">Smart Receipt Scanner</h1>
-      <p className="text-bordeaux-600 mb-8 max-w-lg">
-        Utilizing free native OCR engines to capture ingredients automatically.
-      </p>
+
+      <main className="flex-grow w-full max-w-5xl mx-auto px-6 pt-6 pb-32 relative z-10 flex flex-col items-center">
+        <div className="w-full mb-10 flex justify-start">
+          <div className="inline-block bg-white/60 backdrop-blur-md rounded-full border border-[#450920]/10 shadow-sm">
+            <GooeyNav items={[{ label: "← Dashboard", href: "/dashboard" }]} />
+          </div>
+        </div>
+        
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-black text-bordeaux-800 mb-4 tracking-tight drop-shadow-sm">Smart Receipt <span className="text-[#da627d]">Scanner</span></h1>
+          <p className="text-bordeaux-600 font-semibold text-lg max-w-lg mx-auto">
+            Utilizing AI-powered OCR to catalog your ingredients automatically.
+          </p>
+        </div>
 
       <AnimatePresence mode="wait">
         {/* STEP 1: CAPTURE */}
@@ -230,24 +251,44 @@ export default function Scan() {
             initial={{ scale: 0.95, opacity: 0 }} 
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="w-full max-w-md aspect-[3/4] rounded-3xl border-4 border-dashed border-apricot-300 bg-white/40 backdrop-blur-sm flex flex-col items-center justify-center p-8 relative overflow-hidden group shadow-lg"
+            className="w-full max-w-md"
           >
+            <TiltedCard 
+              containerHeight="600px"
+              containerWidth="100%"
+              imageHeight="600px"
+              imageWidth="100%"
+              scaleOnHover={1.05}
+              rotateAmplitude={12}
+              showMobileWarning={false}
+              showTooltip={false}
+              displayOverlayContent={true}
+              overlayContent={
+                <SpotlightCard 
+                  className="w-full h-full rounded-[40px] border-2 border-[#ffa5ab]/60 bg-gradient-to-br from-[#ffd1d5]/80 via-[#ffe5e7]/90 to-[#f9dbbd]/80 backdrop-blur-xl shadow-2xl p-10 relative overflow-hidden group"
+                  showBorderBeam={true}
+                  beamColorFrom="#da627d"
+                  beamColorTo="#450920"
+                  beamSize={400}
+                  beamDuration={10}
+                >
+                  <div className="flex flex-col items-center justify-center w-full h-full">
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" capture="environment" onChange={handleFileUpload} />
             <canvas ref={canvasRef} className="hidden" />
 
              {!cameraActive ? (
               <>
-                <div className="w-20 h-20 bg-apricot-50 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <Camera size={40} className="text-apricot-400" />
+                <div className="w-24 h-24 bg-[#fffbfa] rounded-3xl shadow-inner flex items-center justify-center mb-8 transform group-hover:rotate-6 transition-transform duration-500 border border-[#f9dbbd]/40">
+                  <Camera size={48} className="text-[#da627d]" />
                 </div>
-                <h3 className="text-xl font-bold text-bordeaux-800 mb-2">Ready to Scan?</h3>
-                <p className="text-sm text-gray-500 mb-8 px-4">Point your camera at a receipt or individual food items</p>
-                <div className="flex flex-col gap-3 w-full">
-                  <Button variant="primary" onClick={() => startCamera("environment")} className="w-full shadow-lg shadow-apricot-400/30 py-6 text-lg">
-                    <Camera className="mr-2" size={20} /> Open Scanner
+                <h3 className="text-2xl font-black text-[#450920] mb-3">Ready to Scan?</h3>
+                <p className="text-[#a53860]/70 font-semibold mb-10 px-4 text-center">Point your camera at a receipt or individual food items</p>
+                <div className="flex flex-col gap-4 w-full px-4">
+                  <Button onClick={() => startCamera("environment")} className="w-full h-14 text-lg font-bold rounded-2xl shadow-xl shadow-[#da627d]/20 bg-gradient-to-r from-[#da627d] to-[#ffa5ab] border-0 text-white hover:scale-[1.02] transition-all">
+                    <Camera className="mr-2" size={22} /> Open Scanner
                   </Button>
-                  <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full py-6 border-gray-200">
-                    <Upload className="mr-2" size={18} /> Upload from Gallery
+                  <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full h-14 border-2 border-[#f9dbbd] text-[#450920] font-bold rounded-2xl hover:bg-[#f9dbbd]/20 transition-all bg-white/40 backdrop-blur-sm">
+                    <Upload className="mr-2" size={20} /> Upload from Gallery
                   </Button>
                 </div>
               </>
@@ -268,43 +309,56 @@ export default function Scan() {
                 />
 
                 {/* Controls */}
-                <div className="absolute top-6 right-6 flex gap-3 z-30">
+                <div className="absolute top-8 right-8 flex gap-4 z-30">
                   <button 
                     onClick={toggleTorch}
-                    className={`p-3 rounded-full backdrop-blur-md transition-colors ${torch ? 'bg-apricot-400 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                    className={`p-4 rounded-full backdrop-blur-md transition-all shadow-lg border border-white/20 ${torch ? 'bg-[#ffcc33] text-white' : 'bg-black/40 text-white hover:bg-black/60'}`}
                   >
-                    {torch ? <Zap size={24} /> : <ZapOff size={24} />}
+                    {torch ? <Zap size={28} /> : <ZapOff size={28} />}
                   </button>
-                  <button onClick={stopCamera} className="p-3 bg-black/50 text-white rounded-full backdrop-blur-md hover:bg-black/70 transition-colors">
-                    <X size={24} />
+                  <button onClick={stopCamera} className="p-4 bg-black/40 text-white rounded-full backdrop-blur-md hover:bg-black/60 transition-all shadow-lg border border-white/20">
+                    <X size={28} />
                   </button>
                 </div>
 
-                <div className="absolute bottom-10 left-0 right-0 flex flex-col items-center gap-6 z-30 px-6">
-                  <div className="flex items-center gap-6">
-                    <button 
-                      onClick={toggleCamera}
-                      className="p-4 bg-white/10 text-white rounded-full backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all active:scale-95"
-                    >
-                      <RotateCw size={24} />
-                    </button>
+                <div className="absolute bottom-12 left-0 right-0 flex flex-col items-center gap-8 z-30 px-6">
+                  <div className="grid grid-cols-3 items-center w-full max-w-sm">
+                    <div className="flex justify-center">
+                      <button 
+                        onClick={toggleCamera}
+                        className="p-5 bg-white/10 text-white rounded-full backdrop-blur-lg border-2 border-white/20 hover:bg-white/20 transition-all active:scale-95 shadow-xl"
+                      >
+                        <RotateCw size={28} />
+                      </button>
+                    </div>
 
-                    <button 
-                      onClick={captureFrame}
-                      className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl border-4 border-[#ff6670]/30 active:scale-90 transition-transform"
-                    >
-                      <div className="w-14 h-14 bg-gradient-to-tr from-apricot-400 to-[#ff6670] rounded-full"></div>
-                    </button>
+                    <div className="flex justify-center">
+                      <button 
+                        onClick={captureFrame}
+                        className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(218,98,125,0.4)] border-8 border-[#da627d]/20 active:scale-90 transition-all group/btn relative overflow-hidden"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-tr from-[#da627d] to-[#ffa5ab] animate-pulse group-hover/btn:scale-110 transition-transform"></div>
+                        <div className="w-16 h-16 bg-white rounded-full relative z-10 flex items-center justify-center text-[#da627d]">
+                          <Camera size={32} />
+                        </div>
+                      </button>
+                    </div>
 
-                    <div className="w-14"></div> {/* Spacer for symmetry */}
+                    <div className="w-full h-full flex items-center justify-center pointer-events-none opacity-0">
+                      <div className="w-[68px] h-[68px]"></div> {/* Exact spacer for perfect centering */}
+                    </div>
                   </div>
                   
-                  <p className="text-white/80 text-xs font-medium tracking-widest uppercase bg-black/30 px-4 py-1.5 rounded-full backdrop-blur-sm">
-                    Scanning in {facingMode === "user" ? "Selfie" : "Standard"} Mode
+                  <p className="text-white/90 text-[10px] font-black tracking-[0.2em] uppercase bg-[#da627d]/80 px-6 py-2 rounded-full backdrop-blur-md border border-white/20 shadow-lg">
+                    {facingMode === "user" ? "Selfie" : "Standard"} Mode Active
                   </p>
                 </div>
               </div>
             )}
+                  </div>
+                </SpotlightCard>
+              }
+            />
           </motion.div>
         )}
 
@@ -319,70 +373,96 @@ export default function Scan() {
 
         {/* STEP 3: REVIEW */}
         {step === "review" && (
-          <motion.div key="review" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-xl">
-             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-bordeaux-800">Verify ({scannedItems.length}) Items</h2>
-                <Button variant="outline" onClick={() => setStep("capture")}>Retake</Button>
-             </div>
-
-             <div className="flex flex-col gap-3 mb-6 text-left max-h-[400px] overflow-y-auto pr-2">
-                {scannedItems.length === 0 ? (
-                  <div className="p-8 text-center bg-red-50 rounded-2xl text-red-500 font-bold border border-red-100">
-                    No items detected! Please try taking a closer picture.
-                  </div>
-                ) : (
-                  scannedItems.map((item, idx) => (
-                    <Card key={idx} className="flex justify-between items-center p-4 bg-white hover:shadow-lg transition-all rounded-2xl border-gray-100 border">
-                       <div className="flex flex-col gap-2 w-full pr-4">
-                          <input 
-                            value={item.name} 
-                            onChange={(e) => updateItem(idx, 'name', e.target.value)}
-                            className="font-bold text-lg text-bordeaux-800 capitalize bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-apricot-400 focus:outline-none w-full transition-colors pb-1"
-                            placeholder="e.g. Organic Almond Milk"
-                          />
-                          <div className="flex gap-2 items-center flex-wrap mt-1">
-                            <input 
-                              type="number"
-                              value={item.quantity} 
-                              onChange={(e) => updateItem(idx, 'quantity', Number(e.target.value))}
-                              className="w-16 text-sm font-medium text-apricot-700 bg-apricot-50 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 ring-apricot-400 border border-transparent hover:border-apricot-200"
-                              min="0"
-                              step="any"
-                            />
-                            <input 
-                              value={item.unit} 
-                              onChange={(e) => updateItem(idx, 'unit', e.target.value)}
-                              className="w-24 text-sm font-medium text-apricot-700 bg-apricot-50 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 ring-apricot-400 border border-transparent hover:border-apricot-200"
-                              placeholder="unit"
-                            />
-                            <input 
-                              type="date"
-                              value={item.expiry || ""} 
-                              onChange={(e) => updateItem(idx, 'expiry', e.target.value)}
-                              className="flex-1 text-sm font-medium text-apricot-700 bg-apricot-50 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 ring-apricot-400 border border-transparent hover:border-apricot-200 min-w-[120px]"
-                            />
-                          </div>
-                       </div>
-                       <button onClick={() => removeItem(idx)} className="p-3 text-gray-400 hover:text-red-500 transition-colors bg-gray-50 rounded-full hover:bg-red-50 shrink-0">
-                          <Trash size={18} />
-                       </button>
-                    </Card>
-                  ))
-                )}
-             </div>
-
-             <Button onClick={addItemManually} variant="outline" className="w-full mb-6 border-dashed border-gray-300 text-gray-500 hover:border-apricot-400 hover:text-apricot-600 bg-transparent shadow-none h-12">
-               <Plus size={18} className="mr-2"/> Add Missing Item
-             </Button>
-
-             <Button 
-                onClick={saveToPantry}
-                disabled={scannedItems.length === 0 || processing}
-                className="w-full h-14 text-lg font-bold rounded-2xl shadow-xl shadow-apricot-500/20 bg-gradient-to-r from-apricot-400 to-[#ff6670] border-0"
+          <motion.div key="review" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-2xl">
+             <MagicCard 
+               className="w-full p-8 md:p-10 rounded-[40px] border-2 border-[#ffa5ab]/60 bg-gradient-to-br from-[#ffd1d5]/80 via-[#ffe5e7]/90 to-[#f9dbbd]/80 backdrop-blur-xl shadow-2xl relative overflow-hidden flex flex-col"
+               gradientFrom="#da627d"
+               gradientTo="#450920"
              >
-               {processing ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle2 className="mr-2" />}
-               Save to Pantry
-             </Button>
+               <BorderBeam size={250} duration={12} colorFrom="#da627d" colorTo="#450920" borderRadius={40} />
+               
+               <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b border-black/5 pb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-[#ffe5e7] rounded-2xl border border-[#ffa5ab]/40">
+                      <Sparkles className="text-[#da627d]" size={24} />
+                    </div>
+                    <h2 className="text-3xl font-black text-[#450920] tracking-tight">Verify ({scannedItems.length}) Items</h2>
+                  </div>
+                  <Button variant="outline" onClick={() => setStep("capture")} className="rounded-full border-[#f9dbbd] text-[#450920] font-bold px-6">Retake</Button>
+               </div>
+
+               <div className="flex flex-col gap-4 mb-8 text-left max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                  {scannedItems.length === 0 ? (
+                    <div className="p-12 text-center bg-red-50/50 rounded-3xl text-[#cf3053] font-bold border border-red-100 flex flex-col items-center">
+                      <X size={48} className="mb-4 opacity-50" />
+                      <p className="text-xl">No items detected!</p>
+                      <p className="text-sm font-semibold opacity-70 mt-1">Please try taking a closer picture with better lighting.</p>
+                    </div>
+                  ) : (
+                    scannedItems.map((item, idx) => (
+                      <div key={idx} className="flex justify-between items-center p-6 bg-white/40 hover:bg-white/60 transition-all rounded-3xl border-[#f9dbbd]/40 border-2 shadow-sm hover:shadow-md group">
+                         <div className="flex flex-col gap-3 w-full pr-4">
+                            <input 
+                              value={item.name} 
+                              onChange={(e) => updateItem(idx, 'name', e.target.value)}
+                              className="font-black text-xl text-[#450920] capitalize bg-transparent border-b-2 border-transparent hover:border-[#f9dbbd] focus:border-[#da627d] focus:outline-none w-full transition-all pb-1"
+                              placeholder="e.g. Organic Almond Milk"
+                            />
+                            <div className="flex gap-3 items-center flex-wrap">
+                              <div className="flex items-center bg-[#fffbfa] border border-[#f9dbbd]/60 rounded-xl px-1 overflow-hidden">
+                                <span className="text-[10px] font-black text-[#a53860]/50 uppercase tracking-widest pl-2">Qty</span>
+                                <input 
+                                  type="number"
+                                  value={item.quantity} 
+                                  onChange={(e) => updateItem(idx, 'quantity', Number(e.target.value))}
+                                  className="w-16 text-sm font-black text-[#450920] bg-transparent p-2 focus:outline-none"
+                                  min="0"
+                                  step="any"
+                                />
+                              </div>
+                              <div className="flex items-center bg-[#fffbfa] border border-[#f9dbbd]/60 rounded-xl px-1 overflow-hidden">
+                                <span className="text-[10px] font-black text-[#a53860]/50 uppercase tracking-widest pl-2">Unit</span>
+                                <input 
+                                  value={item.unit} 
+                                  onChange={(e) => updateItem(idx, 'unit', e.target.value)}
+                                  className="w-24 text-sm font-black text-[#450920] bg-transparent p-2 focus:outline-none"
+                                  placeholder="unit"
+                                />
+                              </div>
+                              <div className="flex items-center bg-[#fffbfa] border border-[#f9dbbd]/60 rounded-xl px-1 overflow-hidden flex-1 min-w-[150px]">
+                                <span className="text-[10px] font-black text-[#a53860]/50 uppercase tracking-widest pl-2">Expiry</span>
+                                <input 
+                                  type="date"
+                                  value={item.expiry || ""} 
+                                  onChange={(e) => updateItem(idx, 'expiry', e.target.value)}
+                                  className="text-sm font-black text-[#450920] bg-transparent p-2 focus:outline-none w-full"
+                                />
+                              </div>
+                            </div>
+                         </div>
+                         <button onClick={() => removeItem(idx)} className="p-4 text-[#a53860]/40 hover:text-[#cf3053] transition-all bg-white/60 rounded-2xl hover:bg-red-50 shrink-0 shadow-sm">
+                            <Trash size={20} />
+                         </button>
+                      </div>
+                    ))
+                  )}
+               </div>
+
+               <div className="flex flex-col gap-4">
+                 <Button onClick={addItemManually} variant="outline" className="w-full h-14 border-2 border-dashed border-[#f9dbbd] text-[#a53860] hover:border-[#da627d] hover:bg-[#fff5f7] bg-transparent shadow-none rounded-2xl font-bold flex items-center justify-center">
+                   <Plus size={20} className="mr-2"/> Add Missing Item
+                 </Button>
+
+                 <Button 
+                    onClick={saveToPantry}
+                    disabled={scannedItems.length === 0 || processing}
+                    className="w-full h-16 text-xl font-black rounded-[24px] shadow-2xl shadow-[#da627d]/30 bg-gradient-to-r from-[#da627d] via-[#a53860] to-[#450920] border-0 text-white hover:scale-[1.02] transition-all"
+                 >
+                   {processing ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle2 className="mr-2" />}
+                   Save to Pantry
+                 </Button>
+               </div>
+             </MagicCard>
           </motion.div>
         )}
 
@@ -397,21 +477,18 @@ export default function Scan() {
           </motion.div>
         )}
       </AnimatePresence>
+      </main>
+      
       {/* FOOTER */}
-      <footer className="w-full bg-[#1d070c] py-14 px-6 md:px-12 text-[#fffbfa] mt-20 relative z-30 shadow-[0_-20px_50px_rgba(0,0,0,0.15)] overflow-hidden">
+      <footer className="w-full bg-[#1d070c] py-14 px-6 md:px-12 text-[#fffbfa] mt-auto relative z-30 shadow-[0_-20px_50px_rgba(0,0,0,0.15)] overflow-hidden">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[14px] text-[#f9dbbd]/70 font-semibold font-sans">
            <div className="w-full md:w-2/3">
-              <FallingText 
-                text="© 2026 FoodPrint. Save food, save money, save the planet. 100% Free Web App. No credit card required."
-                trigger="auto"
-                fontSize="14px"
-                backgroundColor="transparent"
-              />
+              <span>© 2026 FoodPrint. Save food, save money, save the planet. 100% Free Web App. No credit card required.</span>
            </div>
            <div className="flex gap-6 justify-center md:justify-end w-full md:w-1/3">
-              <span className="hover:text-[#da627d] transition-colors">Privacy</span>
-              <span className="hover:text-[#da627d] transition-colors">Terms</span>
-              <span className="hover:text-[#da627d] transition-colors">Support</span>
+              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Privacy</span>
+              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Terms</span>
+              <span className="hover:text-[#da627d] transition-colors cursor-pointer">Support</span>
            </div>
         </div>
       </footer>
